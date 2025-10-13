@@ -641,7 +641,7 @@ export default function PropertiesPage() {
                         {property.title}
                       </h4>
                       <p className="text-xs text-slate-600 flex items-center gap-1 line-clamp-1">
-                        <MapPin className="h-3 w-3 text-amber-600 flex-shrink-0" />
+                        <MapPin className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
                         {property.location}
                       </p>
                     </div>
@@ -650,24 +650,24 @@ export default function PropertiesPage() {
                       <span className="text-xl font-bold text-amber-600">
                         ${(property.price / 1000).toFixed(0)}k
                       </span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-600">
                         ${property.pricePerMonth}/mo
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-600">
+                    <div className="flex items-center justify-between text-xs text-slate-700">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1">
-                          <Bed className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="font-medium">{property.beds}</span>
+                          <Bed className="h-4 w-4 text-amber-600" />
+                          <span className="font-semibold">{property.beds}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Bath className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="font-medium">{property.baths}</span>
+                          <Bath className="h-4 w-4 text-amber-600" />
+                          <span className="font-semibold">{property.baths}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Square className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="font-medium">{property.sqft}</span>
+                          <Square className="h-4 w-4 text-amber-600" />
+                          <span className="font-semibold">{property.sqft}</span>
                         </div>
                       </div>
                     </div>
@@ -677,7 +677,7 @@ export default function PropertiesPage() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="w-full mt-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all"
+                          className="w-full mt-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all font-semibold"
                         >
                           View Details
                         </Button>
@@ -782,8 +782,8 @@ export default function PropertiesPage() {
               </div>
             ) : (
               filteredProperties.map((property, index) => (
+                <Link key={property.id} href={`/properties/${property.id}`}>
                 <Card
-                  key={property.id}
                   className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
                     selectedProperty?.id === property.id
                       ? 'ring-2 ring-amber-500 shadow-2xl scale-[1.01]'
@@ -792,7 +792,6 @@ export default function PropertiesPage() {
                   style={{
                     animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`
                   }}
-                  onClick={() => handlePropertySelect(property)}
                 >
                   <div className="relative overflow-hidden group">
                     <img
@@ -849,7 +848,7 @@ export default function PropertiesPage() {
                     </div>
                   </div>
 
-                  <CardContent className="p-4 bg-white">
+                  <CardContent className="p-4 bg-white space-y-3">
                     <h4 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">
                       {property.title}
                     </h4>
@@ -876,8 +875,11 @@ export default function PropertiesPage() {
                         <span className="text-xs text-slate-500">sqft</span>
                       </div>
                     </div>
+
+                    {/* View Details Button - Removed nested Link since card is already wrapped in Link */}
                   </CardContent>
                 </Card>
+                </Link>
               ))
             )}
           </div>
