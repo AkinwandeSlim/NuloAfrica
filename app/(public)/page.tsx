@@ -145,16 +145,15 @@ export default function HomePage() {
                   </div>
 
                   {/* Search Button */}
-                  <Button
-                    type="button"
-                    className="h-12 px-8 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
-                    onClick={() => {
-                      console.log('Searching:', { location, propertyType, priceRange })
-                    }}
-                  >
-                    <Search className="mr-2 h-5 w-5" />
-                    Search
-                  </Button>
+                  <Link href={`/properties?location=${encodeURIComponent(location)}&type=${propertyType !== 'All Types' ? propertyType : ''}&minPrice=${priceRange[0]}&maxPrice=${priceRange[1]}`}>
+                    <Button
+                      type="button"
+                      className="h-12 px-8 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
+                    >
+                      <Search className="mr-2 h-5 w-5" />
+                      Search
+                    </Button>
+                  </Link>
                 </div>
 
                 {/* Advanced Filters Toggle */}
@@ -236,10 +235,18 @@ export default function HomePage() {
 
                 {/* Quick Filter Pills */}
                 <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                  <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Apartments</span>
-                  <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Houses</span>
-                  <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Villas</span>
-                  <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Luxury</span>
+                  <Link href="/properties?type=Apartment">
+                    <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Apartments</span>
+                  </Link>
+                  <Link href="/properties?type=House">
+                    <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Houses</span>
+                  </Link>
+                  <Link href="/properties?type=Villa">
+                    <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Villas</span>
+                  </Link>
+                  <Link href="/properties?minPrice=500000">
+                    <span className="px-4 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full text-sm font-medium transition-all cursor-pointer">Luxury</span>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
