@@ -96,25 +96,68 @@ function FlyToProperty({ property }: { property: Property | null }) {
   const map = useMap()
 
   useEffect(() => {
-    if (property) {
-      console.log('🎯 FlyToProperty: Attempting to fly to property', {
-        title: property.title,
-        lat: property.latitude,
-        lng: property.longitude,
-        isValid: isValidCoordinate(property.latitude, property.longitude)
-      })
+    if (!property) return
+
+    // Extract coordinates and force to Number type
+    let lat = property.latitude
+    let lng = property.longitude
+
+    // Log raw values
+    console.log('🎯 FlyToProperty: Raw property data', {
+      title: property.title,
+      rawLat: lat,
+      rawLng: lng,
+      latType: typeof lat,
+      lngType: typeof lng,
+      fullProperty: property
+    })
+
+    // CRITICAL: Check for null/undefined first
+    if (lat === null || lat === undefined || lng === null || lng === undefined) {
+      console.warn('⚠️ Coordinates are null or undefined:', property.title, { lat, lng })
+      return
+    }
+
+    // Try to convert to number if it's a string
+    if (typeof lat === 'string') {
+      lat = parseFloat(lat)
+      console.log('🔄 Converted lat from string to number:', lat)
+    }
+    if (typeof lng === 'string') {
+      lng = parseFloat(lng)
+      console.log('🔄 Converted lng from string to number:', lng)
+    }
+
+    // CRITICAL: Check for NaN AFTER conversion (NaN is type 'number')
+    if (isNaN(lat) || isNaN(lng)) {
+      console.warn('⚠️ Coordinates are NaN after conversion:', property.title, { lat, lng })
+      return
+    }
+
+    // Check type
+    if (typeof lat !== 'number' || typeof lng !== 'number') {
+      console.warn('⚠️ Coordinates are not numbers:', property.title, { lat, lng, latType: typeof lat, lngType: typeof lng })
+      return
+    }
+
+    // Check valid range
+    if (!isValidCoordinate(lat, lng)) {
+      console.warn('⚠️ Coordinates out of range:', property.title, { lat, lng })
+      return
+    }
+
+    // All checks passed - use setView (more reliable than flyTo)
+    try {
+      console.log('✅ Moving map to:', property.title, { lat, lng })
       
-      if (isValidCoordinate(property.latitude, property.longitude)) {
-        try {
-          map.flyTo([property.latitude, property.longitude], 14, {
-            duration: 1.5
-          })
-        } catch (error) {
-          console.error('❌ Error flying to property:', error)
-        }
-      } else {
-        console.warn('⚠️ Skipping flyTo - Invalid coordinates for property:', property.title)
-      }
+      // Use setView instead of flyTo - it's instant and more reliable
+      // This avoids the NaN issues with flyTo animation
+      map.setView([lat, lng], 14, {
+        animate: true,
+        duration: 0.5
+      })
+    } catch (error) {
+      console.error('❌ Error moving to property:', error, { property: property.title, lat, lng })
     }
   }, [property, map])
 

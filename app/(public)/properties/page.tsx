@@ -329,24 +329,46 @@ export default function PropertiesPage() {
   // Safe property selection with coordinate validation
   const handlePropertySelect = (property: Property | null) => {
     if (property) {
-      // Validate coordinates before setting
-      const hasValidCoords = !isNaN(property.latitude) && 
-                            !isNaN(property.longitude) && 
-                            property.latitude >= -90 && 
-                            property.latitude <= 90 && 
-                            property.longitude >= -180 && 
-                            property.longitude <= 180
+      console.log('🔍 handlePropertySelect received:', {
+        title: property.title,
+        lat: property.latitude,
+        lng: property.longitude,
+        latType: typeof property.latitude,
+        lngType: typeof property.longitude,
+        hasLat: 'latitude' in property,
+        hasLng: 'longitude' in property
+      })
+      
+      // Ensure coordinates exist and convert to numbers
+      const lat = Number(property.latitude)
+      const lng = Number(property.longitude)
+      
+      // Validate coordinates
+      const hasValidCoords = !isNaN(lat) && 
+                            !isNaN(lng) && 
+                            lat >= -90 && 
+                            lat <= 90 && 
+                            lng >= -180 && 
+                            lng <= 180
       
       if (hasValidCoords) {
-        console.log('✅ Valid property selected:', property.title, {
-          lat: property.latitude,
-          lng: property.longitude
+        // Create a clean property object with guaranteed number coordinates
+        const cleanProperty = {
+          ...property,
+          latitude: lat,
+          longitude: lng
+        }
+        console.log('✅ Valid property selected:', cleanProperty.title, {
+          lat: cleanProperty.latitude,
+          lng: cleanProperty.longitude
         })
-        setSelectedProperty(property)
+        setSelectedProperty(cleanProperty)
       } else {
         console.warn('⚠️ Property has invalid coordinates:', property.title, {
-          lat: property.latitude,
-          lng: property.longitude
+          lat: lat,
+          lng: lng,
+          rawLat: property.latitude,
+          rawLng: property.longitude
         })
         // Don't set the property if coordinates are invalid
         setSelectedProperty(null)
@@ -391,27 +413,28 @@ export default function PropertiesPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex h-[calc(100vh-140px)]">
+      <div className="hidden md:flex h-[calc(100vh-128px)] relative">
         {/* LEFT SIDEBAR - Filters (Collapsible) */}
-        <div className={`transition-all duration-300 bg-white border-r border-slate-200 overflow-y-auto ${isFilterOpen ? 'w-80' : 'w-0'}`}>
-          <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Filters</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setPriceRange([0, 1000000])
-                  setSelectedType("all")
-                  setMinBeds(0)
-                  setMinBaths(0)
-                  setSearchQuery("")
-                }}
-                className="text-amber-600 hover:text-amber-700 text-sm"
-              >
-                Clear all
-              </Button>
-            </div>
+        <div className={`transition-all duration-300 bg-white border-r border-slate-200 flex-shrink-0 ${isFilterOpen ? 'w-80' : 'w-0'}`}>
+          <div className="h-full overflow-y-auto">
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between sticky top-0 bg-white pb-4 border-b border-slate-200 z-10">
+                <h3 className="text-lg font-bold text-slate-900">Filters</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setPriceRange([0, 1000000])
+                    setSelectedType("all")
+                    setMinBeds(0)
+                    setMinBaths(0)
+                    setSearchQuery("")
+                  }}
+                  className="text-amber-600 hover:text-amber-700 text-sm"
+                >
+                  Clear all
+                </Button>
+              </div>
 
             {/* Price Range */}
             <div>
@@ -501,6 +524,7 @@ export default function PropertiesPage() {
                 <span className="font-semibold text-slate-900">{filteredProperties.length}</span> properties found
               </p>
             </div>
+            </div>
           </div>
         </div>
 
@@ -509,38 +533,45 @@ export default function PropertiesPage() {
           variant="outline"
           size="sm"
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="absolute left-2 top-4 z-50 bg-white shadow-lg"
+          className="absolute left-2 top-4 z-50 bg-white shadow-lg hover:bg-slate-50 transition-colors"
         >
           {isFilterOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </Button>
 
         {/* CENTER - Map */}
-        <div className="flex-1 relative">
-          <PropertyMap 
-            properties={filteredProperties}
-            selectedProperty={selectedProperty}
-            onPropertySelect={handlePropertySelect}
-          />
+        <div className="flex-1 relative h-full">
+          <div className="absolute inset-0">
+            <PropertyMap 
+              properties={filteredProperties}
+              selectedProperty={selectedProperty}
+              onPropertySelect={handlePropertySelect}
+            />
+          </div>
         </div>
 
         {/* RIGHT SIDEBAR - Property Listings */}
-        <div className="w-96 bg-white border-l border-slate-200 overflow-y-auto">
-          <div className="p-4 space-y-4">
-            {/* Header with Sort */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div className="w-96 bg-white border-l border-slate-200 flex-shrink-0 flex flex-col h-full">
+          {/* Header with Sort - Sticky */}
+          <div className="flex-shrink-0 p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+            <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg text-slate-900">
                 {filteredProperties.length} Properties
               </h3>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="text-sm px-2 py-1 rounded border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-white"
               >
                 <option value="recent">Recent</option>
-                <option value="price-low">Price ↑</option>
-                <option value="price-high">Price ↓</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
               </select>
             </div>
+          </div>
+
+          {/* Property Cards - Scrollable */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 space-y-4">
 
             {/* Property Cards */}
             {filteredProperties.length === 0 ? (
@@ -561,21 +592,24 @@ export default function PropertiesPage() {
                 </Button>
               </div>
             ) : (
-              filteredProperties.map((property) => (
+              filteredProperties.map((property, index) => (
                 <Card
                   key={property.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
                     selectedProperty?.id === property.id
-                      ? 'ring-2 ring-amber-500 shadow-lg'
-                      : ''
+                      ? 'ring-2 ring-amber-500 shadow-xl scale-[1.02]'
+                      : 'hover:ring-1 hover:ring-amber-200'
                   }`}
+                  style={{
+                    animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`
+                  }}
                   onClick={() => handlePropertySelect(property)}
                 >
-                  <div className="relative">
+                  <div className="relative overflow-hidden group">
                     <img
                       src={property.image}
                       alt={property.title}
-                      className="w-full h-40 object-cover rounded-t-lg"
+                      className="w-full h-40 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-110"
                     />
                     {property.featured && (
                       <Badge className="absolute top-2 left-2 bg-amber-500">
@@ -601,17 +635,19 @@ export default function PropertiesPage() {
                     </Button>
                   </div>
 
-                  <CardContent className="p-4">
-                    <h4 className="font-bold text-sm text-slate-900 mb-1 line-clamp-1">
-                      {property.title}
-                    </h4>
-                    <p className="text-xs text-slate-600 mb-2 flex items-center gap-1 line-clamp-1">
-                      <MapPin className="h-3 w-3 text-amber-600" />
-                      {property.location}
-                    </p>
+                  <CardContent className="p-4 space-y-3">
+                    <div>
+                      <h4 className="font-bold text-base text-slate-900 mb-1 line-clamp-1 group-hover:text-amber-600 transition-colors">
+                        {property.title}
+                      </h4>
+                      <p className="text-xs text-slate-600 flex items-center gap-1 line-clamp-1">
+                        <MapPin className="h-3 w-3 text-amber-600 flex-shrink-0" />
+                        {property.location}
+                      </p>
+                    </div>
 
-                    <div className="flex items-baseline gap-2 mb-3">
-                      <span className="text-lg font-bold text-amber-600">
+                    <div className="flex items-baseline gap-2 pb-3 border-b border-slate-100">
+                      <span className="text-xl font-bold text-amber-600">
                         ${(property.price / 1000).toFixed(0)}k
                       </span>
                       <span className="text-xs text-slate-500">
@@ -619,24 +655,39 @@ export default function PropertiesPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-slate-600">
-                      <div className="flex items-center gap-1">
-                        <Bed className="h-3 w-3" />
-                        <span>{property.beds}</span>
+                    <div className="flex items-center justify-between text-xs text-slate-600">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Bed className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="font-medium">{property.beds}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Bath className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="font-medium">{property.baths}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Square className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="font-medium">{property.sqft}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Bath className="h-3 w-3" />
-                        <span>{property.baths}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Square className="h-3 w-3" />
-                        <span>{property.sqft}</span>
-                      </div>
+                    </div>
+
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Link href={`/properties/${property.id}`}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full mt-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all"
+                        >
+                          View Details
+                        </Button>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>
               ))
             )}
+            </div>
           </div>
         </div>
       </div>
@@ -730,21 +781,24 @@ export default function PropertiesPage() {
                 </Button>
               </div>
             ) : (
-              filteredProperties.map((property) => (
+              filteredProperties.map((property, index) => (
                 <Card
                   key={property.id}
-                  className={`overflow-hidden cursor-pointer transition-all hover:shadow-xl ${
+                  className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
                     selectedProperty?.id === property.id
-                      ? 'ring-2 ring-amber-500 shadow-xl'
-                      : 'shadow-md'
+                      ? 'ring-2 ring-amber-500 shadow-2xl scale-[1.01]'
+                      : 'shadow-md hover:ring-1 hover:ring-amber-200'
                   }`}
+                  style={{
+                    animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`
+                  }}
                   onClick={() => handlePropertySelect(property)}
                 >
-                  <div className="relative">
+                  <div className="relative overflow-hidden group">
                     <img
                       src={property.image}
                       alt={property.title}
-                      className="w-full h-56 object-cover"
+                      className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
