@@ -96,10 +96,25 @@ function FlyToProperty({ property }: { property: Property | null }) {
   const map = useMap()
 
   useEffect(() => {
-    if (property && isValidCoordinate(property.latitude, property.longitude)) {
-      map.flyTo([property.latitude, property.longitude], 14, {
-        duration: 1.5
+    if (property) {
+      console.log('🎯 FlyToProperty: Attempting to fly to property', {
+        title: property.title,
+        lat: property.latitude,
+        lng: property.longitude,
+        isValid: isValidCoordinate(property.latitude, property.longitude)
       })
+      
+      if (isValidCoordinate(property.latitude, property.longitude)) {
+        try {
+          map.flyTo([property.latitude, property.longitude], 14, {
+            duration: 1.5
+          })
+        } catch (error) {
+          console.error('❌ Error flying to property:', error)
+        }
+      } else {
+        console.warn('⚠️ Skipping flyTo - Invalid coordinates for property:', property.title)
+      }
     }
   }, [property, map])
 

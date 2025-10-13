@@ -326,6 +326,36 @@ export default function PropertiesPage() {
     )
   }
 
+  // Safe property selection with coordinate validation
+  const handlePropertySelect = (property: Property | null) => {
+    if (property) {
+      // Validate coordinates before setting
+      const hasValidCoords = !isNaN(property.latitude) && 
+                            !isNaN(property.longitude) && 
+                            property.latitude >= -90 && 
+                            property.latitude <= 90 && 
+                            property.longitude >= -180 && 
+                            property.longitude <= 180
+      
+      if (hasValidCoords) {
+        console.log('✅ Valid property selected:', property.title, {
+          lat: property.latitude,
+          lng: property.longitude
+        })
+        setSelectedProperty(property)
+      } else {
+        console.warn('⚠️ Property has invalid coordinates:', property.title, {
+          lat: property.latitude,
+          lng: property.longitude
+        })
+        // Don't set the property if coordinates are invalid
+        setSelectedProperty(null)
+      }
+    } else {
+      setSelectedProperty(null)
+    }
+  }
+
   const propertyTypes = ["all", "Villa", "Apartment", "House", "Penthouse", "Bungalow", "Duplex", "Mansion", "Terrace"]
 
   return (
@@ -489,7 +519,7 @@ export default function PropertiesPage() {
           <PropertyMap 
             properties={filteredProperties}
             selectedProperty={selectedProperty}
-            onPropertySelect={(property) => setSelectedProperty(property)}
+            onPropertySelect={handlePropertySelect}
           />
         </div>
 
@@ -539,7 +569,7 @@ export default function PropertiesPage() {
                       ? 'ring-2 ring-amber-500 shadow-lg'
                       : ''
                   }`}
-                  onClick={() => setSelectedProperty(property)}
+                  onClick={() => handlePropertySelect(property)}
                 >
                   <div className="relative">
                     <img
@@ -635,7 +665,7 @@ export default function PropertiesPage() {
             <PropertyMap 
               properties={filteredProperties}
               selectedProperty={selectedProperty}
-              onPropertySelect={(property) => setSelectedProperty(property)}
+              onPropertySelect={handlePropertySelect}
             />
           </div>
         </div>
@@ -708,7 +738,7 @@ export default function PropertiesPage() {
                       ? 'ring-2 ring-amber-500 shadow-xl'
                       : 'shadow-md'
                   }`}
-                  onClick={() => setSelectedProperty(property)}
+                  onClick={() => handlePropertySelect(property)}
                 >
                   <div className="relative">
                     <img
