@@ -46,56 +46,53 @@ export default function HomePage() {
       name: "Lagos",
       country: "Nigeria",
       properties: 456,
-      image: "https://images.unsplash.com/photo-1619546952812-a6c7c0e8f7c1?w=800&h=600&fit=crop",
-      description: "Vibrant city life with modern amenities",
-    },
-    {
-      name: "Nairobi",
-      country: "Kenya",
-      properties: 234,
-      image: "https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=800&h=600&fit=crop",
-      description: "Modern urban living in East Africa",
-    },
-    {
-      name: "Cape Town",
-      country: "South Africa",
-      properties: 389,
-      image: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&h=600&fit=crop",
-      description: "Coastal paradise with stunning views",
-    },
-    {
-      name: "Accra",
-      country: "Ghana",
-      properties: 178,
-      image: "https://images.unsplash.com/photo-1632482238891-e33d6e8e4d0e?w=800&h=600&fit=crop",
-      description: "Growing metropolis with opportunities",
+      image: "/lagos-victoria-island-skyline.jpg",
+      description: "Nigeria's commercial capital with vibrant city life",
     },
     {
       name: "Abuja",
       country: "Nigeria",
       properties: 267,
-      image: "https://images.unsplash.com/photo-1578674473243-c2c2f2b3c4c7?w=800&h=600&fit=crop",
-      description: "Nigeria's modern capital city",
+      image: "/african-cityscape.jpg",
+      description: "Nigeria's modern capital city with planned infrastructure",
     },
     {
-      name: "Kigali",
-      country: "Rwanda",
-      properties: 145,
-      image: "https://images.unsplash.com/photo-1609137144813-7d9921338f24?w=800&h=600&fit=crop",
-      description: "Clean, modern, and innovative",
+      name: "Port Harcourt",
+      country: "Nigeria",
+      properties: 189,
+      image: "/contemporary-townhouse-johannesburg.jpg",
+      description: "The Garden City - Nigeria's oil and gas hub",
     },
   ]
 
   return (
-    <div className="min-h-screen bg-warm-ivory-gradient">
-      {/* Hero Section - Simple & Luxury */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Clean gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-stone-50/30" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-white overflow-hidden">
+      {/* Hero Section - Ultra Modern with Floating Bubbles */}
+      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden">
+        {/* Animated Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-50/80 via-white to-slate-50/60 animate-gradient-shift" />
         
-        {/* Subtle radial glow */}
+        {/* Floating Bubbles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Large Amber Bubble */}
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-amber-400/20 to-orange-300/10 rounded-full blur-3xl animate-float" style={{animationDuration: '20s'}} />
+          
+          {/* Medium Slate Bubble */}
+          <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-br from-slate-300/15 to-slate-200/10 rounded-full blur-3xl animate-float-delayed" style={{animationDuration: '25s', animationDelay: '2s'}} />
+          
+          {/* Small Amber Bubble */}
+          <div className="absolute bottom-32 left-1/4 w-64 h-64 bg-gradient-to-br from-amber-300/25 to-yellow-200/15 rounded-full blur-2xl animate-float" style={{animationDuration: '18s', animationDelay: '1s'}} />
+          
+          {/* Tiny Accent Bubble */}
+          <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-gradient-to-br from-orange-400/20 to-amber-300/10 rounded-full blur-2xl animate-pulse-slow" style={{animationDuration: '8s'}} />
+          
+          {/* Bottom Right Bubble */}
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-slate-200/20 to-amber-100/15 rounded-full blur-3xl animate-float-delayed" style={{animationDuration: '22s', animationDelay: '3s'}} />
+        </div>
+        
+        {/* Radial Glow Effect */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[600px] w-[600px] rounded-full bg-gradient-radial from-amber-100/40 via-amber-50/20 to-transparent blur-3xl" />
+          <div className="h-[800px] w-[800px] rounded-full bg-gradient-radial from-amber-200/30 via-transparent to-transparent blur-3xl animate-pulse-slow" style={{animationDuration: '10s'}} />
         </div>
 
         {/* Content */}
@@ -419,13 +416,13 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-amber-100 text-amber-700 border-0 px-4 py-2">
               <MapPin className="h-3 w-3 inline mr-2" />
-              Explore Africa
+              Explore Nigeria
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
               Popular <span className="text-amber-600">Cities</span>
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Discover premium properties in Africa's most vibrant and sought-after cities
+              Discover premium properties in Nigeria's major cities
             </p>
           </div>
 

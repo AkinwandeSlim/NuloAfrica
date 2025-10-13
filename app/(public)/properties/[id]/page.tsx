@@ -31,11 +31,11 @@ const propertyData = {
   longitude: 36.8070,
   images: [
     "/modern-villa-nairobi.jpg",
-    "/villa-interior-1.jpg",
-    "/villa-kitchen.jpg",
-    "/villa-bedroom.jpg",
-    "/villa-bathroom.jpg",
-    "/villa-exterior.jpg",
+    "/modern-villa-living-room.jpg",
+    "/luxury-apartment-lagos.jpg",
+    "/modern-villa-bathroom.jpg",
+    "/modern-villa-pool.jpg",
+    "/contemporary-townhouse-johannesburg.jpg",
   ],
   description: `This stunning modern villa offers the perfect blend of luxury and comfort in the heart of Westlands, Nairobi. 
   

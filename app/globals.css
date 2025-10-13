@@ -887,3 +887,68 @@ html {
         .custom-marker:hover {
           z-index: 1000 !important;
         }
+
+/* Ultra Smooth Bubble Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(10px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-5px, -40px) scale(1);
+  }
+  75% {
+    transform: translate(-15px, -20px) scale(0.95);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(-15px, -25px) scale(1.08) rotate(5deg);
+  }
+  66% {
+    transform: translate(10px, -35px) scale(0.92) rotate(-5deg);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-float {
+  animation: float ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}

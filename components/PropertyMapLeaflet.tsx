@@ -61,16 +61,30 @@ const createCustomIcon = (isSelected: boolean) => {
   })
 }
 
+// Helper function to validate coordinates
+const isValidCoordinate = (lat: number, lng: number): boolean => {
+  return !isNaN(lat) && !isNaN(lng) && 
+         lat >= -90 && lat <= 90 && 
+         lng >= -180 && lng <= 180
+}
+
 // Component to fit map bounds
 function FitBounds({ properties }: { properties: Property[] }) {
   const map = useMap()
 
   useEffect(() => {
     if (properties.length > 0) {
-      const bounds = L.latLngBounds(
-        properties.map(p => [p.latitude, p.longitude] as [number, number])
+      // Filter properties with valid coordinates
+      const validProperties = properties.filter(p => 
+        isValidCoordinate(p.latitude, p.longitude)
       )
-      map.fitBounds(bounds, { padding: [50, 50] })
+      
+      if (validProperties.length > 0) {
+        const bounds = L.latLngBounds(
+          validProperties.map(p => [p.latitude, p.longitude] as [number, number])
+        )
+        map.fitBounds(bounds, { padding: [50, 50] })
+      }
     }
   }, [properties, map])
 
@@ -82,7 +96,7 @@ function FlyToProperty({ property }: { property: Property | null }) {
   const map = useMap()
 
   useEffect(() => {
-    if (property) {
+    if (property && isValidCoordinate(property.latitude, property.longitude)) {
       map.flyTo([property.latitude, property.longitude], 14, {
         duration: 1.5
       })
@@ -123,34 +137,36 @@ export default function PropertyMapLeaflet({ properties, selectedProperty, onPro
         <FlyToProperty property={selectedProperty} />
 
         {/* Property Markers */}
-        {properties.map((property) => (
-          <Marker
-            key={property.id}
-            position={[property.latitude, property.longitude]}
-            icon={createCustomIcon(selectedProperty?.id === property.id)}
-            eventHandlers={{
-              click: () => {
-                console.log('📍 Marker clicked:', property.title)
-                onPropertySelect(property)
-              }
-            }}
-          >
-            <Popup>
-              <div className="p-2 min-w-[200px]">
-                <h3 className="font-bold text-sm mb-1">{property.title}</h3>
-                <p className="text-xs text-slate-600 mb-2">{property.location}</p>
-                <p className="text-lg font-bold text-amber-600">
-                  ${(property.price / 1000).toFixed(0)}k
-                </p>
-                <div className="flex gap-2 text-xs text-slate-600 mt-2">
-                  <span>{property.beds} beds</span>
-                  <span>•</span>
-                  <span>{property.baths} baths</span>
+        {properties
+          .filter(property => isValidCoordinate(property.latitude, property.longitude))
+          .map((property) => (
+            <Marker
+              key={property.id}
+              position={[property.latitude, property.longitude]}
+              icon={createCustomIcon(selectedProperty?.id === property.id)}
+              eventHandlers={{
+                click: () => {
+                  console.log('📍 Marker clicked:', property.title)
+                  onPropertySelect(property)
+                }
+              }}
+            >
+              <Popup>
+                <div className="p-2 min-w-[200px]">
+                  <h3 className="font-bold text-sm mb-1">{property.title}</h3>
+                  <p className="text-xs text-slate-600 mb-2">{property.location}</p>
+                  <p className="text-lg font-bold text-amber-600">
+                    ${(property.price / 1000).toFixed(0)}k
+                  </p>
+                  <div className="flex gap-2 text-xs text-slate-600 mt-2">
+                    <span>{property.beds} beds</span>
+                    <span>•</span>
+                    <span>{property.baths} baths</span>
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
 
       {/* Loading Overlay */}
