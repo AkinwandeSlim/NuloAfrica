@@ -1,24 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import dynamic from 'next/dynamic'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Slider } from "@/components/ui/slider"
 import { 
   MapPin, Bed, Bath, Square, Heart, Search, 
-  DollarSign, Home, Loader2, SlidersHorizontal, X, ChevronLeft, ChevronRight
+  Home, Loader2, X, SlidersHorizontal, Wifi, Car, 
+  Dumbbell, Shield, Waves, Wind, Zap, Dog, Filter,
+  List, Map as MapIcon, Columns3
 } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "sonner"
 
 // Dynamically import Leaflet Map component to avoid SSR issues
 const PropertyMap = dynamic(() => import('@/components/PropertyMapLeaflet'), { 
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-slate-100">
-      <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+      <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
       <p className="ml-3 text-slate-600">Loading map...</p>
     </div>
   )
@@ -97,205 +100,64 @@ const propertiesData: Property[] = [
     title: "Contemporary Villa Banana Island",
     location: "Banana Island, Lagos, Nigeria",
     price: 850000,
-    pricePerMonth: 5000,
+    pricePerMonth: 5500,
     beds: 6,
     baths: 7,
     sqft: 6500,
     type: "Villa",
-    image: "/modern-villa-pool.jpg",
+    image: "/contemporary-townhouse-johannesburg.jpg",
     featured: true,
-    latitude: 6.4333,
+    latitude: 6.4167,
     longitude: 3.4333,
-    description: "Exclusive waterfront villa with private dock and pool"
+    description: "Ultra-luxury villa on exclusive Banana Island"
   },
-  {
-    id: 5,
-    title: "Serviced Apartment Ikeja GRA",
-    location: "Ikeja GRA, Lagos, Nigeria",
-    price: 180000,
-    pricePerMonth: 1200,
-    beds: 2,
-    baths: 2,
-    sqft: 1800,
-    type: "Apartment",
-    image: "/modern-villa-bathroom.jpg",
-    featured: false,
-    latitude: 6.5833,
-    longitude: 3.3500,
-    description: "Fully serviced apartment near airport and business district"
-  },
-  
   // Abuja Properties
   {
-    id: 6,
+    id: 5,
     title: "Executive Mansion Maitama",
     location: "Maitama, Abuja, Nigeria",
-    price: 680000,
-    pricePerMonth: 4000,
-    beds: 7,
-    baths: 8,
-    sqft: 7200,
+    price: 720000,
+    pricePerMonth: 4200,
+    beds: 5,
+    baths: 6,
+    sqft: 5800,
     type: "Mansion",
-    image: "/contemporary-townhouse-johannesburg.jpg",
+    image: "/luxury-apartment-lagos.jpg",
     featured: true,
     latitude: 9.0820,
     longitude: 7.4951,
-    description: "Palatial mansion in Abuja's most prestigious district"
+    description: "Prestigious mansion in Abuja's most exclusive district"
   },
   {
-    id: 7,
-    title: "Modern Terrace Asokoro",
-    location: "Asokoro, Abuja, Nigeria",
-    price: 420000,
-    pricePerMonth: 2500,
-    beds: 4,
-    baths: 5,
-    sqft: 3800,
-    type: "Terrace",
-    image: "/modern-villa-nairobi.jpg",
-    featured: true,
-    latitude: 9.0333,
-    longitude: 7.5333,
-    description: "Contemporary terrace house with smart home features"
-  },
-  {
-    id: 8,
-    title: "Luxury Apartment Wuse 2",
+    id: 6,
+    title: "Modern Apartment Wuse 2",
     location: "Wuse 2, Abuja, Nigeria",
     price: 280000,
-    pricePerMonth: 1700,
+    pricePerMonth: 1600,
     beds: 3,
     baths: 3,
-    sqft: 2500,
-    type: "Apartment",
-    image: "/luxury-apartment-lagos.jpg",
-    featured: false,
-    latitude: 9.0667,
-    longitude: 7.4833,
-    description: "Prime location apartment in Abuja's commercial hub"
-  },
-  {
-    id: 9,
-    title: "Family Home Gwarinpa",
-    location: "Gwarinpa, Abuja, Nigeria",
-    price: 220000,
-    pricePerMonth: 1400,
-    beds: 4,
-    baths: 4,
-    sqft: 3000,
-    type: "House",
-    image: "/contemporary-townhouse-johannesburg.jpg",
-    featured: false,
-    latitude: 9.1167,
-    longitude: 7.4167,
-    description: "Spacious family home in well-planned residential area"
-  },
-  {
-    id: 10,
-    title: "Penthouse Jabi Lake",
-    location: "Jabi, Abuja, Nigeria",
-    price: 520000,
-    pricePerMonth: 3200,
-    beds: 4,
-    baths: 4,
-    sqft: 4000,
-    type: "Penthouse",
-    image: "/modern-villa-living-room.jpg",
-    featured: true,
-    latitude: 9.0667,
-    longitude: 7.4500,
-    description: "Stunning penthouse overlooking Jabi Lake with rooftop terrace"
-  },
-  
-  // Port Harcourt Properties
-  {
-    id: 11,
-    title: "Waterfront Villa Old GRA",
-    location: "Old GRA, Port Harcourt, Nigeria",
-    price: 480000,
-    pricePerMonth: 2900,
-    beds: 5,
-    baths: 6,
-    sqft: 5000,
-    type: "Villa",
-    image: "/beachfront-property-kenya.jpg",
-    featured: true,
-    latitude: 4.8156,
-    longitude: 7.0498,
-    description: "Elegant waterfront villa with private jetty and garden"
-  },
-  {
-    id: 12,
-    title: "Modern Duplex New GRA",
-    location: "New GRA, Port Harcourt, Nigeria",
-    price: 350000,
-    pricePerMonth: 2100,
-    beds: 4,
-    baths: 4,
-    sqft: 3600,
-    type: "Duplex",
-    image: "/modern-villa-pool.jpg",
-    featured: false,
-    latitude: 4.8333,
-    longitude: 7.0167,
-    description: "Contemporary duplex in secure gated community"
-  },
-  {
-    id: 13,
-    title: "Executive Apartment Trans Amadi",
-    location: "Trans Amadi, Port Harcourt, Nigeria",
-    price: 190000,
-    pricePerMonth: 1300,
-    beds: 3,
-    baths: 3,
-    sqft: 2200,
+    sqft: 2400,
     type: "Apartment",
     image: "/apartment-accra.jpg",
     featured: false,
-    latitude: 4.8000,
-    longitude: 7.0333,
-    description: "Well-appointed apartment near industrial area"
-  },
-  {
-    id: 14,
-    title: "Luxury Bungalow Rumuola",
-    location: "Rumuola, Port Harcourt, Nigeria",
-    price: 280000,
-    pricePerMonth: 1800,
-    beds: 4,
-    baths: 4,
-    sqft: 3200,
-    type: "Bungalow",
-    image: "/modern-villa-bathroom.jpg",
-    featured: false,
-    latitude: 4.8500,
-    longitude: 7.0167,
-    description: "Spacious bungalow with large compound and parking"
-  },
-  {
-    id: 15,
-    title: "Premium Terrace Ada George",
-    location: "Ada George, Port Harcourt, Nigeria",
-    price: 240000,
-    pricePerMonth: 1600,
-    beds: 3,
-    baths: 4,
-    sqft: 2800,
-    type: "Terrace",
-    image: "/contemporary-townhouse-johannesburg.jpg",
-    featured: false,
-    latitude: 4.8667,
-    longitude: 7.0500,
-    description: "Modern terrace house in developing residential area"
+    latitude: 9.0643,
+    longitude: 7.4820,
+    description: "Contemporary apartment in central business district"
   },
 ]
 
+type ViewMode = 'list' | 'map' | 'split'
+
 export default function PropertiesPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { user } = useAuth()
+  
   const [searchQuery, setSearchQuery] = useState("")
   const [favorites, setFavorites] = useState<number[]>([])
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
-  const [isFilterOpen, setIsFilterOpen] = useState(true) // Sidebar collapse state
-  const [showMobileFilters, setShowMobileFilters] = useState(false) // Mobile filter modal
+  const [showFilterSidebar, setShowFilterSidebar] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('split')
   
   // Filters
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000])
@@ -303,6 +165,27 @@ export default function PropertiesPage() {
   const [minBeds, setMinBeds] = useState<number>(0)
   const [minBaths, setMinBaths] = useState<number>(0)
   const [sortBy, setSortBy] = useState<'recent' | 'price-low' | 'price-high'>('recent')
+  
+  // Advanced Filters
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([])
+
+  // Read URL parameters and set filters
+  useEffect(() => {
+    const location = searchParams.get('location')
+    const type = searchParams.get('type')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
+    const bedrooms = searchParams.get('bedrooms')
+    const bathrooms = searchParams.get('bathrooms')
+
+    if (location) setSearchQuery(location)
+    if (type) setSelectedType(type)
+    if (minPrice) setPriceRange(prev => [parseInt(minPrice), prev[1]])
+    if (maxPrice) setPriceRange(prev => [prev[0], parseInt(maxPrice)])
+    if (bedrooms && bedrooms !== 'Any') setMinBeds(parseInt(bedrooms.replace('+', '')))
+    if (bathrooms && bathrooms !== 'Any') setMinBaths(parseInt(bathrooms.replace('+', '')))
+  }, [searchParams])
 
   // Filter properties
   const filteredProperties = propertiesData.filter(property => {
@@ -321,56 +204,41 @@ export default function PropertiesPage() {
   })
 
   const toggleFavorite = (id: number) => {
+    if (!user) {
+      toast.error("Sign in required", {
+        description: "Please sign in to save properties as favorites.",
+        action: {
+          label: "Sign In",
+          onClick: () => router.push('/signin'),
+        },
+      })
+      return
+    }
+
+    const isFavorite = favorites.includes(id)
     setFavorites(prev => 
       prev.includes(id) ? prev.filter(fav => fav !== id) : [...prev, id]
     )
+
+    if (isFavorite) {
+      toast.info("Removed from favorites")
+    } else {
+      toast.success("Added to favorites")
+    }
   }
 
-  // Safe property selection with coordinate validation
   const handlePropertySelect = (property: Property | null) => {
     if (property) {
-      console.log('🔍 handlePropertySelect received:', {
-        title: property.title,
-        lat: property.latitude,
-        lng: property.longitude,
-        latType: typeof property.latitude,
-        lngType: typeof property.longitude,
-        hasLat: 'latitude' in property,
-        hasLng: 'longitude' in property
-      })
-      
-      // Ensure coordinates exist and convert to numbers
       const lat = Number(property.latitude)
       const lng = Number(property.longitude)
       
-      // Validate coordinates
-      const hasValidCoords = !isNaN(lat) && 
-                            !isNaN(lng) && 
-                            lat >= -90 && 
-                            lat <= 90 && 
-                            lng >= -180 && 
-                            lng <= 180
+      const hasValidCoords = !isNaN(lat) && !isNaN(lng) && 
+                            lat >= -90 && lat <= 90 && 
+                            lng >= -180 && lng <= 180
       
       if (hasValidCoords) {
-        // Create a clean property object with guaranteed number coordinates
-        const cleanProperty = {
-          ...property,
-          latitude: lat,
-          longitude: lng
-        }
-        console.log('✅ Valid property selected:', cleanProperty.title, {
-          lat: cleanProperty.latitude,
-          lng: cleanProperty.longitude
-        })
-        setSelectedProperty(cleanProperty)
+        setSelectedProperty({ ...property, latitude: lat, longitude: lng })
       } else {
-        console.warn('⚠️ Property has invalid coordinates:', property.title, {
-          lat: lat,
-          lng: lng,
-          rawLat: property.latitude,
-          rawLng: property.longitude
-        })
-        // Don't set the property if coordinates are invalid
         setSelectedProperty(null)
       }
     } else {
@@ -379,637 +247,373 @@ export default function PropertiesPage() {
   }
 
   const propertyTypes = ["all", "Villa", "Apartment", "House", "Penthouse", "Bungalow", "Duplex", "Mansion", "Terrace"]
+  
+  const amenities = [
+    { id: 'wifi', label: 'WiFi', icon: Wifi },
+    { id: 'parking', label: 'Parking', icon: Car },
+    { id: 'gym', label: 'Gym', icon: Dumbbell },
+    { id: 'security', label: '24/7 Security', icon: Shield },
+    { id: 'pool', label: 'Swimming Pool', icon: Waves },
+    { id: 'ac', label: 'Air Conditioning', icon: Wind },
+    { id: 'generator', label: 'Generator', icon: Zap },
+    { id: 'pets', label: 'Pet Friendly', icon: Dog },
+  ]
+  
+  const preferences = [
+    'Furnished', 'Unfurnished', 'Serviced', 'Newly Built',
+    'Gated Estate', 'Close to School', 'Close to Market', 'Waterfront'
+  ]
+
+  const toggleAmenity = (id: string) => {
+    setSelectedAmenities(prev =>
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    )
+  }
+
+  const togglePreference = (pref: string) => {
+    setSelectedPreferences(prev =>
+      prev.includes(pref) ? prev.filter(p => p !== pref) : [...prev, pref]
+    )
+  }
+
+  const formatPrice = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`
+    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`
+    return `$${value}`
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Search Bar - Sticky at top */}
-      <div className="sticky top-16 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-[1920px] mx-auto px-4 md:px-6 py-3">
-          <div className="flex items-center gap-3">
-            {/* Mobile Filter Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMobileFilters(true)}
-              className="md:hidden flex items-center gap-2"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-            </Button>
+    <div className="min-h-screen bg-white">
+      {/* Top Filter Bar - Fixed */}
+      <div className="fixed top-16 left-0 right-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-[1920px] mx-auto px-4 lg:px-6 py-3">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Search & Filters */}
+            <div className="flex items-center gap-3 flex-1">
+              {/* Filter Toggle */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilterSidebar(!showFilterSidebar)}
+                className="flex items-center gap-2 h-10 px-4 border-slate-300 hover:bg-slate-50"
+              >
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
+              </Button>
 
-            {/* Search Input */}
-            <div className="relative flex-1 max-w-2xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Search by location, property name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 h-11 border-slate-300 focus:border-amber-500 focus:ring-amber-500"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Layout */}
-      <div className="hidden md:flex h-[calc(100vh-128px)] relative">
-        {/* LEFT SIDEBAR - Filters (Collapsible) */}
-        <div className={`transition-all duration-300 bg-white border-r border-slate-200 flex-shrink-0 ${isFilterOpen ? 'w-80' : 'w-0'}`}>
-          <div className="h-full overflow-y-auto">
-            <div className="p-6 space-y-6">
-              <div className="flex items-center justify-between sticky top-0 bg-white pb-4 border-b border-slate-200 z-10">
-                <h3 className="text-lg font-bold text-slate-900">Filters</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setPriceRange([0, 1000000])
-                    setSelectedType("all")
-                    setMinBeds(0)
-                    setMinBaths(0)
-                    setSearchQuery("")
-                  }}
-                  className="text-amber-600 hover:text-amber-700 text-sm"
-                >
-                  Clear all
-                </Button>
-              </div>
-
-            {/* Price Range */}
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-amber-600" />
-                Price Range
-              </label>
-              <div className="space-y-3">
-                <Slider
-                  value={priceRange}
-                  onValueChange={(value) => setPriceRange(value as [number, number])}
-                  max={1000000}
-                  step={10000}
-                  className="w-full"
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search location, property..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 border-slate-300"
                 />
-                <div className="flex items-center justify-between text-sm text-slate-600">
-                  <span>${(priceRange[0] / 1000).toFixed(0)}k</span>
-                  <span>${(priceRange[1] / 1000).toFixed(0)}k</span>
-                </div>
               </div>
+
+              {/* Results Count */}
+              <span className="hidden md:inline text-sm font-medium text-slate-600">
+                {filteredProperties.length} properties
+              </span>
             </div>
 
-            {/* Property Type */}
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                <Home className="h-4 w-4 text-amber-600" />
-                Property Type
-              </label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-              >
-                {propertyTypes.map(type => (
-                  <option key={type} value={type}>
-                    {type === "all" ? "All Types" : type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Bedrooms */}
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                <Bed className="h-4 w-4 text-amber-600" />
-                Min Bedrooms
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[0, 1, 2, 3, 4, 5].map(num => (
-                  <Button
-                    key={num}
-                    variant={minBeds === num ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setMinBeds(num)}
-                    className={minBeds === num ? "bg-amber-500 hover:bg-amber-600" : ""}
-                  >
-                    {num === 0 ? "Any" : num}
-                  </Button>
-                ))}
+            {/* Right: View Toggle & Sort */}
+            <div className="flex items-center gap-3">
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === 'list' 
+                      ? 'bg-white text-orange-600 shadow-sm' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="List View"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('split')}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === 'split' 
+                      ? 'bg-white text-orange-600 shadow-sm' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Split View"
+                >
+                  <Columns3 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('map')}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === 'map' 
+                      ? 'bg-white text-orange-600 shadow-sm' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Map View"
+                >
+                  <MapIcon className="h-4 w-4" />
+                </button>
               </div>
-            </div>
 
-            {/* Bathrooms */}
-            <div>
-              <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                <Bath className="h-4 w-4 text-amber-600" />
-                Min Bathrooms
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[0, 1, 2, 3, 4].map(num => (
-                  <Button
-                    key={num}
-                    variant={minBaths === num ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setMinBaths(num)}
-                    className={minBaths === num ? "bg-amber-500 hover:bg-amber-600" : ""}
-                  >
-                    {num === 0 ? "Any" : num}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Results Count */}
-            <div className="pt-4 border-t border-slate-200">
-              <p className="text-sm text-slate-600">
-                <span className="font-semibold text-slate-900">{filteredProperties.length}</span> properties found
-              </p>
-            </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Toggle Button for Filters */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsFilterOpen(!isFilterOpen)}
-          className="absolute left-2 top-4 z-50 bg-white shadow-lg hover:bg-slate-50 transition-colors"
-        >
-          {isFilterOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </Button>
-
-        {/* CENTER - Map */}
-        <div className="flex-1 relative h-full">
-          <div className="absolute inset-0">
-            <PropertyMap 
-              properties={filteredProperties}
-              selectedProperty={selectedProperty}
-              onPropertySelect={handlePropertySelect}
-            />
-          </div>
-        </div>
-
-        {/* RIGHT SIDEBAR - Property Listings */}
-        <div className="w-96 bg-white border-l border-slate-200 flex-shrink-0 flex flex-col h-full">
-          {/* Header with Sort - Sticky */}
-          <div className="flex-shrink-0 p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg text-slate-900">
-                {filteredProperties.length} Properties
-              </h3>
+              {/* Sort Dropdown */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-white"
+                className="h-10 px-3 border border-slate-300 rounded-lg text-sm font-medium bg-white hover:bg-slate-50 cursor-pointer"
               >
-                <option value="recent">Recent</option>
+                <option value="recent">Most Recent</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
               </select>
             </div>
           </div>
-
-          {/* Property Cards - Scrollable */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4 space-y-4">
-
-            {/* Property Cards */}
-            {filteredProperties.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-slate-500">No properties found</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setPriceRange([0, 1000000])
-                    setSelectedType("all")
-                    setMinBeds(0)
-                    setMinBaths(0)
-                    setSearchQuery("")
-                  }}
-                  className="mt-4"
-                >
-                  Clear filters
-                </Button>
-              </div>
-            ) : (
-              filteredProperties.map((property, index) => (
-                <Card
-                  key={property.id}
-                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                    selectedProperty?.id === property.id
-                      ? 'ring-2 ring-amber-500 shadow-xl scale-[1.02]'
-                      : 'hover:ring-1 hover:ring-amber-200'
-                  }`}
-                  style={{
-                    animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`
-                  }}
-                  onClick={() => handlePropertySelect(property)}
-                >
-                  <div className="relative overflow-hidden group">
-                    <img
-                      src={property.image}
-                      alt={property.title}
-                      className="w-full h-40 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-110"
-                    />
-                    {property.featured && (
-                      <Badge className="absolute top-2 left-2 bg-amber-500">
-                        Featured
-                      </Badge>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleFavorite(property.id)
-                      }}
-                      className="absolute top-2 right-2 bg-white/90 hover:bg-white"
-                    >
-                      <Heart
-                        className={`h-4 w-4 ${
-                          favorites.includes(property.id)
-                            ? 'fill-red-500 text-red-500'
-                            : 'text-slate-600'
-                        }`}
-                      />
-                    </Button>
-                  </div>
-
-                  <CardContent className="p-4 space-y-3">
-                    <div>
-                      <h4 className="font-bold text-base text-slate-900 mb-1 line-clamp-1 group-hover:text-amber-600 transition-colors">
-                        {property.title}
-                      </h4>
-                      <p className="text-xs text-slate-600 flex items-center gap-1 line-clamp-1">
-                        <MapPin className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
-                        {property.location}
-                      </p>
-                    </div>
-
-                    <div className="flex items-baseline gap-2 pb-3 border-b border-slate-100">
-                      <span className="text-xl font-bold text-amber-600">
-                        ${(property.price / 1000).toFixed(0)}k
-                      </span>
-                      <span className="text-xs text-slate-600">
-                        ${property.pricePerMonth}/mo
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1">
-                          <Bed className="h-4 w-4 text-amber-600" />
-                          <span className="font-semibold">{property.beds}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Bath className="h-4 w-4 text-amber-600" />
-                          <span className="font-semibold">{property.baths}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Square className="h-4 w-4 text-amber-600" />
-                          <span className="font-semibold">{property.sqft}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <Link href={`/properties/${property.id}`}>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full mt-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all font-semibold"
-                        >
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Mobile Layout */}
-      <div className="md:hidden">
-        {/* Compact Map Section - Collapsible */}
-        <div className="bg-white border-b border-slate-200">
-          <button 
-            onClick={() => {
-              const mapSection = document.getElementById('mobile-map-section')
-              if (mapSection) {
-                mapSection.classList.toggle('h-0')
-                mapSection.classList.toggle('h-[35vh]')
-              }
-            }}
-            className="w-full p-3 flex items-center justify-between text-slate-700 hover:bg-slate-50"
-          >
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-amber-600" />
-              <span className="font-semibold">View Map</span>
-            </div>
-            <span className="text-xs text-slate-500">Tap to toggle</span>
-          </button>
-          <div id="mobile-map-section" className="h-0 overflow-hidden transition-all duration-300">
-            <PropertyMap 
-              properties={filteredProperties}
-              selectedProperty={selectedProperty}
-              onPropertySelect={handlePropertySelect}
-            />
-          </div>
-        </div>
-
-        {/* Property List Section */}
-        <div className="bg-slate-50">
-          {/* Header with Count and Sort */}
-          <div className="bg-white p-4 border-b border-slate-200 sticky top-[120px] z-30 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-xl text-slate-900">
-                {filteredProperties.length} Properties
-              </h3>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="text-sm px-3 py-2 rounded-lg border border-slate-300 focus:border-amber-500 bg-white"
-              >
-                <option value="recent">Recent</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-              </select>
-            </div>
-            
-            {/* Active Filters Display */}
-            {(priceRange[0] > 0 || priceRange[1] < 1000000 || selectedType !== "all" || minBeds > 0 || minBaths > 0) && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-600">Active filters:</span>
-                {priceRange[0] > 0 || priceRange[1] < 1000000 ? (
-                  <Badge variant="secondary" className="text-xs">
-                    ${(priceRange[0]/1000).toFixed(0)}k - ${(priceRange[1]/1000).toFixed(0)}k
-                  </Badge>
-                ) : null}
-                {selectedType !== "all" && (
-                  <Badge variant="secondary" className="text-xs">{selectedType}</Badge>
-                )}
-                {minBeds > 0 && (
-                  <Badge variant="secondary" className="text-xs">{minBeds}+ beds</Badge>
-                )}
-                {minBaths > 0 && (
-                  <Badge variant="secondary" className="text-xs">{minBaths}+ baths</Badge>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="p-4 space-y-4">
-            {filteredProperties.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-slate-500">No properties found</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setPriceRange([0, 1000000])
-                    setSelectedType("all")
-                    setMinBeds(0)
-                    setMinBaths(0)
-                    setSearchQuery("")
-                  }}
-                  className="mt-4"
-                >
-                  Clear filters
-                </Button>
-              </div>
-            ) : (
-              filteredProperties.map((property, index) => (
-                <Link key={property.id} href={`/properties/${property.id}`}>
-                <Card
-                  className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-                    selectedProperty?.id === property.id
-                      ? 'ring-2 ring-amber-500 shadow-2xl scale-[1.01]'
-                      : 'shadow-md hover:ring-1 hover:ring-amber-200'
-                  }`}
-                  style={{
-                    animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`
-                  }}
-                >
-                  <div className="relative overflow-hidden group">
-                    <img
-                      src={property.image}
-                      alt={property.title}
-                      className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    
-                    {/* Featured Badge */}
-                    {property.featured && (
-                      <Badge className="absolute top-3 left-3 bg-amber-500 text-white border-0 shadow-lg">
-                        ⭐ Featured
-                      </Badge>
-                    )}
-                    
-                    {/* Favorite Button */}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleFavorite(property.id)
-                      }}
-                      className="absolute top-3 right-3 bg-white/95 hover:bg-white shadow-lg rounded-full h-10 w-10"
-                    >
-                      <Heart
-                        className={`h-5 w-5 ${
-                          favorites.includes(property.id)
-                            ? 'fill-red-500 text-red-500'
-                            : 'text-slate-600'
-                        }`}
-                      />
-                    </Button>
-
-                    {/* Price on Image */}
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-                        <div className="flex items-baseline justify-between">
-                          <div>
-                            <span className="text-2xl font-bold text-amber-600">
-                              ${(property.price / 1000).toFixed(0)}k
-                            </span>
-                            <span className="text-sm text-slate-600 ml-2">
-                              ${property.pricePerMonth}/mo
-                            </span>
-                          </div>
-                          <Badge variant="outline" className="text-xs">
-                            {property.type}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <CardContent className="p-4 bg-white space-y-3">
-                    <h4 className="font-bold text-lg text-slate-900 mb-2 line-clamp-1">
-                      {property.title}
-                    </h4>
-                    <p className="text-sm text-slate-600 mb-3 flex items-center gap-1 line-clamp-1">
-                      <MapPin className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                      {property.location}
-                    </p>
-
-                    {/* Property Features */}
-                    <div className="flex items-center gap-4 pt-3 border-t border-slate-100">
-                      <div className="flex items-center gap-1.5 text-slate-700">
-                        <Bed className="h-5 w-5 text-amber-600" />
-                        <span className="font-semibold">{property.beds}</span>
-                        <span className="text-xs text-slate-500">beds</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-slate-700">
-                        <Bath className="h-5 w-5 text-amber-600" />
-                        <span className="font-semibold">{property.baths}</span>
-                        <span className="text-xs text-slate-500">baths</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-slate-700">
-                        <Square className="h-5 w-5 text-amber-600" />
-                        <span className="font-semibold">{property.sqft}</span>
-                        <span className="text-xs text-slate-500">sqft</span>
-                      </div>
-                    </div>
-
-                    {/* View Details Button - Removed nested Link since card is already wrapped in Link */}
-                  </CardContent>
-                </Card>
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Filter Modal */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 bg-black/50 z-50 md:hidden" onClick={() => setShowMobileFilters(false)}>
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      {/* Main Content - Below Fixed Header */}
+      <div className="pt-[76px] flex h-screen">
+        {/* Filter Sidebar */}
+        {showFilterSidebar && (
+          <div className="w-80 border-r border-slate-200 bg-white overflow-y-auto">
             <div className="p-6 space-y-6">
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900">Filters</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowMobileFilters(false)}
+                <button
+                  onClick={() => setShowFilterSidebar(false)}
+                  className="p-1 hover:bg-slate-100 rounded-lg"
                 >
-                  <X className="h-5 w-5" />
-                </Button>
+                  <X className="h-5 w-5 text-slate-500" />
+                </button>
               </div>
 
               {/* Price Range */}
               <div>
-                <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-amber-600" />
+                <label className="text-sm font-semibold text-slate-900 mb-3 block">
                   Price Range
                 </label>
                 <div className="space-y-3">
-                  <Slider
-                    value={priceRange}
-                    onValueChange={(value) => setPriceRange(value as [number, number])}
-                    max={1000000}
-                    step={10000}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Min: {formatPrice(priceRange[0])}</span>
+                    <span className="text-slate-600">Max: {formatPrice(priceRange[1])}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1000000"
+                    step="10000"
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                     className="w-full"
                   />
-                  <div className="flex items-center justify-between text-sm text-slate-600">
-                    <span>${(priceRange[0] / 1000).toFixed(0)}k</span>
-                    <span>${(priceRange[1] / 1000).toFixed(0)}k</span>
-                  </div>
                 </div>
               </div>
 
               {/* Property Type */}
               <div>
-                <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <Home className="h-4 w-4 text-amber-600" />
+                <label className="text-sm font-semibold text-slate-900 mb-3 block">
                   Property Type
                 </label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full h-10 px-3 rounded-lg border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                >
+                <div className="grid grid-cols-2 gap-2">
                   {propertyTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type === "all" ? "All Types" : type}
-                    </option>
+                    <button
+                      key={type}
+                      onClick={() => setSelectedType(type)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        selectedType === type
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      {type === 'all' ? 'All Types' : type}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               {/* Bedrooms */}
               <div>
-                <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <Bed className="h-4 w-4 text-amber-600" />
-                  Min Bedrooms
+                <label className="text-sm font-semibold text-slate-900 mb-3 block">
+                  Bedrooms
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex gap-2">
                   {[0, 1, 2, 3, 4, 5].map(num => (
-                    <Button
+                    <button
                       key={num}
-                      variant={minBeds === num ? "default" : "outline"}
-                      size="sm"
                       onClick={() => setMinBeds(num)}
-                      className={minBeds === num ? "bg-amber-500 hover:bg-amber-600" : ""}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        minBeds === num
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                      }`}
                     >
-                      {num === 0 ? "Any" : num}
-                    </Button>
+                      {num === 0 ? 'Any' : `${num}+`}
+                    </button>
                   ))}
                 </div>
               </div>
 
               {/* Bathrooms */}
               <div>
-                <label className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <Bath className="h-4 w-4 text-amber-600" />
-                  Min Bathrooms
+                <label className="text-sm font-semibold text-slate-900 mb-3 block">
+                  Bathrooms
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex gap-2">
                   {[0, 1, 2, 3, 4].map(num => (
-                    <Button
+                    <button
                       key={num}
-                      variant={minBaths === num ? "default" : "outline"}
-                      size="sm"
                       onClick={() => setMinBaths(num)}
-                      className={minBaths === num ? "bg-amber-500 hover:bg-amber-600" : ""}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        minBaths === num
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                      }`}
                     >
-                      {num === 0 ? "Any" : num}
-                    </Button>
+                      {num === 0 ? 'Any' : `${num}+`}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Apply/Clear Buttons */}
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setPriceRange([0, 1000000])
-                    setSelectedType("all")
-                    setMinBeds(0)
-                    setMinBaths(0)
-                    setSearchQuery("")
-                  }}
-                  className="flex-1"
-                >
-                  Clear All
-                </Button>
-                <Button
-                  onClick={() => setShowMobileFilters(false)}
-                  className="flex-1 bg-amber-500 hover:bg-amber-600"
-                >
-                  Apply Filters
-                </Button>
-              </div>
+              {/* Clear Button */}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPriceRange([0, 1000000])
+                  setSelectedType("all")
+                  setMinBeds(0)
+                  setMinBaths(0)
+                  setSearchQuery("")
+                }}
+                className="w-full"
+              >
+                Clear All Filters
+              </Button>
             </div>
           </div>
+        )}
+
+        {/* Listings Column - Scrollable */}
+        <div className={`flex-1 overflow-y-auto bg-slate-50 ${
+          viewMode === 'map' ? 'hidden' : ''
+        } ${viewMode === 'split' ? 'w-1/2' : 'w-full'}`}>
+          <div className="p-4">
+            {filteredProperties.length === 0 ? (
+              <div className="text-center py-16">
+                <Home className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 mb-2">No properties found</h3>
+                <p className="text-slate-600">Try adjusting your filters</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {filteredProperties.map((property) => (
+                  <Card 
+                    key={property.id}
+                    className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden border border-slate-200 hover:border-orange-300 bg-white"
+                    onClick={() => handlePropertySelect(property)}
+                    onMouseEnter={() => handlePropertySelect(property)}
+                  >
+                    {/* Image */}
+                    <div className="relative w-full h-56 overflow-hidden bg-slate-100">
+                      <img
+                        src={property.image}
+                        alt={property.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      {property.featured && (
+                        <div className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                          Featured
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleFavorite(property.id)
+                        }}
+                        className="absolute top-3 right-3 w-9 h-9 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-lg"
+                      >
+                        <Heart
+                          className={`h-4 w-4 transition-all ${
+                            favorites.includes(property.id)
+                              ? 'fill-red-500 text-red-500'
+                              : 'text-slate-600'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <CardContent className="p-4">
+                      {/* Price */}
+                      <div className="mb-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-slate-900">
+                            ${(property.price / 1000).toFixed(0)}k
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            ${property.pricePerMonth}/mo
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Title & Location */}
+                      <h4 className="font-semibold text-base text-slate-900 mb-1 line-clamp-1 group-hover:text-orange-600 transition-colors">
+                        {property.title}
+                      </h4>
+                      <p className="text-sm text-slate-600 flex items-center gap-1 mb-3 line-clamp-1">
+                        <MapPin className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                        {property.location}
+                      </p>
+
+                      {/* Features */}
+                      <div className="flex items-center gap-4 pb-3 mb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-1.5">
+                          <Bed className="h-4 w-4 text-slate-400" />
+                          <span className="text-xs font-medium text-slate-700">{property.beds}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Bath className="h-4 w-4 text-slate-400" />
+                          <span className="text-xs font-medium text-slate-700">{property.baths}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Square className="h-4 w-4 text-slate-400" />
+                          <span className="text-xs font-medium text-slate-700">{property.sqft}</span>
+                        </div>
+                      </div>
+
+                      {/* View Button */}
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Link href={`/properties/${property.id}`}>
+                          <Button 
+                            size="sm"
+                            className="w-full h-9 bg-slate-900 hover:bg-orange-500 text-white font-semibold text-sm"
+                          >
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+
+        {/* Map Column - Sticky/Fixed */}
+        {(viewMode === 'split' || viewMode === 'map') && (
+          <div className={`${viewMode === 'map' ? 'w-full' : 'w-1/2'} h-[calc(100vh-76px)] sticky top-[76px] border-l border-slate-200`}>
+            <PropertyMap
+              properties={filteredProperties}
+              selectedProperty={selectedProperty}
+              onPropertySelect={handlePropertySelect}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

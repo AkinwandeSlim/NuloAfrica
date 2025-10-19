@@ -17,7 +17,7 @@ const pages = [
     description: "Landing page with enhanced search bar, Google Autocomplete, and price range slider",
     href: "/",
     icon: Home,
-    color: "bg-amber-500",
+    color: "bg-orange-500",
     features: ["Google Maps Autocomplete", "Price Range Slider", "Property Type Filter", "Advanced Filters"]
   },
   {
@@ -25,7 +25,7 @@ const pages = [
     description: "Browse properties with list/map view toggle and location-based filtering",
     href: "/properties",
     icon: Building2,
-    color: "bg-blue-500",
+    color: "bg-orange-600",
     features: ["List View", "Map View", "Location Filtering", "Distance Sorting"]
   },
   {
@@ -33,7 +33,7 @@ const pages = [
     description: "Detailed property view with image carousel and embedded map",
     href: "/properties/1",
     icon: MapPin,
-    color: "bg-green-500",
+    color: "bg-amber-500",
     features: ["Image Carousel", "Embedded Map", "Get Directions", "Contact Owner"]
   },
   {
@@ -41,7 +41,7 @@ const pages = [
     description: "View and manage your saved properties",
     href: "/favorites",
     icon: Heart,
-    color: "bg-red-500",
+    color: "bg-orange-500",
     features: ["Saved Properties Grid", "Remove Favorites", "Empty State", "Hover Animations"]
   },
   {
@@ -49,7 +49,7 @@ const pages = [
     description: "Chat interface for property inquiries",
     href: "/messages",
     icon: MessageSquare,
-    color: "bg-purple-500",
+    color: "bg-amber-600",
     features: ["Conversation List", "Chat Interface", "Search Messages", "Online Status"]
   },
   {
@@ -57,7 +57,7 @@ const pages = [
     description: "User profile with editable fields and preferences",
     href: "/profile",
     icon: User,
-    color: "bg-indigo-500",
+    color: "bg-orange-600",
     features: ["Editable Profile", "Notification Settings", "Security Actions", "Stats Cards"]
   },
   {
@@ -73,7 +73,7 @@ const pages = [
     description: "User authentication page",
     href: "/signin",
     icon: LogIn,
-    color: "bg-teal-500",
+    color: "bg-amber-500",
     features: ["Email/Password Login", "Remember Me", "Forgot Password", "Social Login"]
   },
   {
@@ -81,7 +81,7 @@ const pages = [
     description: "New user registration",
     href: "/signup",
     icon: UserPlus,
-    color: "bg-pink-500",
+    color: "bg-orange-500",
     features: ["Multi-step Form", "Email Verification", "Terms Agreement", "Profile Setup"]
   },
   {
@@ -89,7 +89,7 @@ const pages = [
     description: "Administrative dashboard",
     href: "/admin",
     icon: Shield,
-    color: "bg-slate-500",
+    color: "bg-orange-600",
     features: ["User Management", "Property Approval", "Analytics", "Settings"]
   },
 ]
@@ -174,23 +174,23 @@ export default function LandingPage() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <div className="text-2xl font-bold">
-                <span className="text-stone-800">Nulo</span> 
-                <span className="text-amber-600">Africa</span>
+                <span className="text-slate-900">Nulo</span> 
+                <span className="text-orange-600">Africa</span>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <Link href="/" className="text-stone-700 hover:text-amber-600 transition-colors font-medium">
+              <Link href="/" className="text-slate-700 hover:text-orange-600 transition-colors font-medium">
                 Home
               </Link>
-              <Link href="/properties" className="text-stone-700 hover:text-amber-600 transition-colors font-medium">
+              <Link href="/properties" className="text-slate-700 hover:text-orange-600 transition-colors font-medium">
                 Properties
               </Link>
-              <Link href="/dashboard" className="text-stone-700 hover:text-amber-600 transition-colors font-medium">
+              <Link href="/dashboard" className="text-slate-700 hover:text-orange-600 transition-colors font-medium">
                 Dashboard
               </Link>
-              <Link href="/landing" className="text-amber-600 font-semibold">
+              <Link href="/landing" className="text-orange-600 font-semibold">
                 All Pages
               </Link>
             </div>
@@ -198,12 +198,12 @@ export default function LandingPage() {
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-4">
               <Link href="/signin">
-                <Button variant="ghost" className="text-stone-700 hover:text-amber-600">
+                <Button variant="ghost" className="text-slate-700 hover:text-orange-600">
                   Sign In
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button className="luxury-gradient-button text-white rounded-xl">
+                <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl">
                   Get Started
                 </Button>
               </Link>
@@ -222,18 +222,18 @@ export default function LandingPage() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t border-stone-200 bg-white/95 backdrop-blur-md">
+            <div className="md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md">
               <div className="flex flex-col gap-4 py-4">
-                <Link href="/" className="text-stone-700 hover:text-amber-600 transition-colors font-medium">
+                <Link href="/" className="text-slate-700 hover:text-orange-600 transition-colors font-medium">
                   Home
                 </Link>
-                <Link href="/properties" className="text-stone-700 hover:text-amber-600 transition-colors font-medium">
+                <Link href="/properties" className="text-slate-700 hover:text-orange-600 transition-colors font-medium">
                   Properties
                 </Link>
-                <Link href="/dashboard" className="text-stone-700 hover:text-amber-600 transition-colors font-medium">
+                <Link href="/dashboard" className="text-slate-700 hover:text-orange-600 transition-colors font-medium">
                   Dashboard
                 </Link>
-                <Link href="/landing" className="text-amber-600 font-semibold">
+                <Link href="/landing" className="text-orange-600 font-semibold">
                   All Pages
                 </Link>
                 <div className="flex gap-2 pt-4">
@@ -243,7 +243,7 @@ export default function LandingPage() {
                     </Button>
                   </Link>
                   <Link href="/signup" className="flex-1">
-                    <Button className="w-full luxury-gradient-button text-white">
+                    <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white">
                       Get Started
                     </Button>
                   </Link>
@@ -258,7 +258,7 @@ export default function LandingPage() {
       <section className="pt-24 pb-16 md:pt-32 md:pb-24">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto mb-16">
-            <Badge className="mb-4 bg-amber-100 text-amber-700 border-0 px-4 py-2">
+            <Badge className="mb-4 bg-orange-50 text-orange-700 border-0 px-4 py-2">
               All Pages & Components
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 animate-fade-in-up">
@@ -269,17 +269,51 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center animate-fade-in-up" style={{animationDelay: '0.2s'}}>
               <Link href="/">
-                <Button className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl px-8 h-12">
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-8 h-12">
                   <Home className="mr-2 h-5 w-5" />
                   Go to Home
                 </Button>
               </Link>
               <Link href="/properties">
-                <Button variant="outline" className="border-2 border-amber-200 hover:border-amber-400 rounded-xl px-8 h-12">
+                <Button variant="outline" className="border-2 border-orange-200 hover:border-orange-400 rounded-xl px-8 h-12">
                   <Building2 className="mr-2 h-5 w-5" />
                   Browse Properties
                 </Button>
               </Link>
+            </div>
+
+            {/* Glassmorphism Search Bar */}
+            <div className="mt-8 flex justify-center animate-fade-in-up" style={{animationDelay: '0.3s'}}>
+              <form
+                onSubmit={(e) => e.preventDefault()}
+                aria-label="Search properties"
+                className="w-full max-w-3xl bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-4 md:p-6 flex items-center gap-3 shadow-lg"
+              >
+                <label htmlFor="query" className="sr-only">Search</label>
+                <input
+                  id="query"
+                  name="query"
+                  type="search"
+                  placeholder="Search by city, neighbourhood, or property ID"
+                  className="flex-1 bg-transparent placeholder-slate-200 text-white focus:outline-none px-4 py-3 rounded-xl"
+                />
+
+                <label htmlFor="type" className="sr-only">Property type</label>
+                <select
+                  id="type"
+                  name="type"
+                  className="bg-white/5 text-white rounded-xl px-3 py-2 focus:outline-none"
+                >
+                  <option value="any">Any type</option>
+                  <option value="sale">For Sale</option>
+                  <option value="rent">For Rent</option>
+                </select>
+
+                <Button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl px-6 py-2">
+                  <Search className="mr-2 h-4 w-4" />
+                  Search
+                </Button>
+              </form>
             </div>
           </div>
 
@@ -294,8 +328,8 @@ export default function LandingPage() {
                   style={{animationDelay: `${0.3 + index * 0.1}s`}}
                 >
                   <CardContent className="p-6 text-center">
-                    <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Icon className="h-7 w-7 text-amber-600" />
+                    <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Icon className="h-7 w-7 text-orange-600" />
                     </div>
                     <h3 className="font-bold text-slate-900 mb-2">{feature.title}</h3>
                     <p className="text-sm text-slate-600">{feature.description}</p>
@@ -308,12 +342,12 @@ export default function LandingPage() {
           {/* Popular Cities Section */}
           <div className="mb-16">
             <div className="text-center mb-12">
-              <Badge className="mb-4 bg-amber-100 text-amber-700 border-0 px-4 py-2">
+              <Badge className="mb-4 bg-orange-50 text-orange-700 border-0 px-4 py-2">
                 <MapPin className="h-3 w-3 inline mr-2" />
-                Explore Africa
+                Explore Cities
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-                Popular <span className="text-amber-600">Cities</span>
+                Popular <span className="text-orange-600">Cities</span>
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                 Discover premium properties in Africa's most vibrant and sought-after cities
@@ -335,23 +369,23 @@ export default function LandingPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
                       
                       {/* Animated Glow */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     </div>
 
                     {/* Content */}
                     <CardContent className="relative z-10 h-full flex flex-col justify-end p-8">
                       {/* Property Count Badge */}
-                      <Badge className="absolute top-6 right-6 bg-amber-500 text-white border-0 px-4 py-2 shadow-lg">
+                      <Badge className="absolute top-6 right-6 bg-orange-500 text-white border-0 px-4 py-2 shadow-lg">
                         {city.properties} Properties
                       </Badge>
 
                       {/* City Info */}
                       <div className="space-y-3">
                         <div>
-                          <h3 className="text-3xl font-bold text-white mb-1 group-hover:text-amber-400 transition-colors duration-300">
+                          <h3 className="text-3xl font-bold text-white mb-1 group-hover:text-orange-400 transition-colors duration-300">
                             {city.name}
                           </h3>
-                          <p className="text-amber-400 font-medium flex items-center gap-2">
+                          <p className="text-orange-400 font-medium flex items-center gap-2">
                             <MapPin className="h-4 w-4" />
                             {city.country}
                           </p>
@@ -370,7 +404,7 @@ export default function LandingPage() {
                     </CardContent>
 
                     {/* Decorative Corner */}
-                    <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-amber-500/20 to-transparent rounded-br-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-orange-500/20 to-transparent rounded-br-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   </Card>
                 </Link>
               ))}
@@ -380,12 +414,12 @@ export default function LandingPage() {
           {/* Pages Grid */}
           <div className="mb-12">
             <div className="text-center mb-12">
-              <Badge className="mb-4 bg-amber-100 text-amber-700 border-0 px-4 py-2">
+              <Badge className="mb-4 bg-orange-50 text-orange-700 border-0 px-4 py-2">
                 <Sparkles className="h-3 w-3 inline mr-2" />
                 Design System
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-                All <span className="text-amber-600">Pages</span>
+                All <span className="text-orange-600">Pages</span>
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                 Explore every page and component in our comprehensive design system
@@ -399,7 +433,7 @@ export default function LandingPage() {
                   <Link key={index} href={page.href}>
                     <Card className="group bg-white/90 backdrop-blur-sm border-white/50 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden">
                       {/* Hover Glow */}
-                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-amber-400/20 via-orange-300/10 to-transparent" />
+                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-orange-400/20 via-orange-300/10 to-transparent" />
                       
                       <CardContent className="p-6 relative z-10">
                         {/* Icon */}
@@ -408,7 +442,7 @@ export default function LandingPage() {
                         </div>
 
                         {/* Title */}
-                        <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-amber-600 transition-colors">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-orange-600 transition-colors">
                           {page.title}
                         </h3>
 
@@ -421,14 +455,14 @@ export default function LandingPage() {
                         <div className="space-y-2 mb-4">
                           {page.features.map((feature, idx) => (
                             <div key={idx} className="flex items-center gap-2 text-xs text-slate-700">
-                              <CheckCircle className="h-3 w-3 text-amber-500" />
+                              <CheckCircle className="h-3 w-3 text-orange-500" />
                               <span>{feature}</span>
                             </div>
                           ))}
                         </div>
 
                         {/* CTA */}
-                        <div className="flex items-center text-amber-600 font-semibold text-sm group-hover:gap-2 transition-all">
+                        <div className="flex items-center text-orange-600 font-semibold text-sm group-hover:gap-2 transition-all">
                           <span>View Page</span>
                           <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </div>
@@ -441,7 +475,7 @@ export default function LandingPage() {
           </div>
 
           {/* Design System Info */}
-          <Card className="relative bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 border-0 rounded-3xl shadow-2xl overflow-hidden">
+          <Card className="relative bg-gradient-to-br from-orange-500 to-orange-600 border-0 rounded-3xl shadow-2xl overflow-hidden">
             {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-400/20 rounded-full blur-2xl" />
@@ -489,13 +523,13 @@ export default function LandingPage() {
 
               <div className="flex flex-wrap gap-4 justify-center">
                 <Link href="/">
-                  <Button size="lg" className="bg-white text-amber-600 hover:bg-white/90 rounded-xl px-8 h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                  <Button size="lg" className="bg-white text-orange-600 hover:bg-white/90 rounded-xl px-8 h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105">
                     <Home className="mr-2 h-5 w-5" />
                     Explore Platform
                   </Button>
                 </Link>
                 <Link href="/properties">
-                  <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-amber-600 rounded-xl px-8 h-14 text-lg font-semibold transition-all hover:scale-105">
+                  <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-orange-600 rounded-xl px-8 h-14 text-lg font-semibold transition-all hover:scale-105">
                     <Building2 className="mr-2 h-5 w-5" />
                     View Properties
                   </Button>

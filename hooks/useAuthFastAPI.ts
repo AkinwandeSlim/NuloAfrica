@@ -125,7 +125,7 @@ export function useAuthFastAPI() {
       await authAPI.logout()
       setUser(null)
       setError(null)
-      router.push('/login')
+      router.push('/signin')
       return { success: true, error: null }
     } catch (err: any) {
       const errorMessage = getErrorMessage(err)

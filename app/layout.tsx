@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
+import { AuthProvider } from "@/contexts/AuthContext"
+import { Toaster } from "sonner"
 import "./globals.css"
 import "mapbox-gl/dist/mapbox-gl.css"
 
@@ -63,13 +65,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
     ],
     apple: [
-      { url: '/apple-icon.svg', type: 'image/svg+xml' },
+      { url: '/apple-touch-icon.svg', type: 'image/svg+xml' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/favicon.svg',
   },
   manifest: '/manifest.json',
   generator: "v0.app",
@@ -83,8 +85,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} antialiased`}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Analytics />
+        <AuthProvider>
+          <Suspense fallback={null}>{children}</Suspense>
+          <Analytics />
+          <Toaster 
+            position="bottom-right" 
+            richColors 
+            closeButton 
+            toastOptions={{
+              style: {
+                marginBottom: '1rem',
+                marginRight: '1rem',
+              },
+              className: 'toast-custom',
+            }}
+            expand={false}
+            visibleToasts={3}
+          />
+        </AuthProvider>
       </body>
     </html>
   )

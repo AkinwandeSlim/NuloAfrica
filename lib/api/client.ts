@@ -47,9 +47,9 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
         
-        // Redirect to login if not already there
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
+        // Redirect to signin if not already there
+        if (!window.location.pathname.includes('/signin')) {
+          window.location.href = '/signin';
         }
       }
     }
@@ -70,6 +70,7 @@ apiClient.interceptors.response.use(
 
 // Helper function to get error message
 export const getErrorMessage = (error: any): string => {
+  // Check for FastAPI error format
   if (error.response?.data?.detail) {
     // FastAPI error format
     if (typeof error.response.data.detail === 'string') {
@@ -80,7 +81,39 @@ export const getErrorMessage = (error: any): string => {
     }
   }
   
+  // Check for other error message formats
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+  
+  if (error.response?.data?.error) {
+    return error.response.data.error;
+  }
+  
+  // Handle empty response body with status code
+  if (error.response?.status) {
+    const statusMessages: Record<number, string> = {
+      400: 'Bad request. Please check your input.',
+      401: 'Invalid email or password.',
+      403: 'Access forbidden. Your account may be disabled.',
+      404: 'Resource not found.',
+      422: 'Validation error. Please check your input.',
+      500: 'Server error. Please try again later.',
+      502: 'Bad gateway. Server is temporarily unavailable.',
+      503: 'Service unavailable. Please try again later.',
+    };
+    
+    return statusMessages[error.response.status] || `Error ${error.response.status}: ${error.message}`;
+  }
+  
+  // Network errors
   if (error.message) {
+    if (error.message.includes('Network Error')) {
+      return 'Unable to connect to server. Please check your internet connection.';
+    }
+    if (error.message.includes('timeout')) {
+      return 'Request timed out. Please try again.';
+    }
     return error.message;
   }
   

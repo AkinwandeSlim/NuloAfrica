@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase/client'
+import { supabaseAdmin } from '@/lib/supabase/server'
 import type { NotificationInsert, NotificationType } from '@/lib/types/database'
 
 /**

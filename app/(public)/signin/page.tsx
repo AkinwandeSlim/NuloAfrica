@@ -5,12 +5,16 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useAuthFastAPI } from "@/hooks/useAuthFastAPI"
-import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter, useSearchParams } from "next/navigation"
+import { toast } from "sonner"
+import { supabase } from "@/lib/supabase/client"
 
 export default function SignInPage() {
   const router = useRouter()
-  const { signIn, loading: authLoading } = useAuthFastAPI()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/properties'
+  const { signIn, signInWithGoogle, loading } = useAuth()
   
   const [formData, setFormData] = useState({
     email: "",
@@ -58,26 +62,87 @@ export default function SignInPage() {
     setApiError(null)
     
     try {
-      console.log('📝 Signin form submitted')
-      const result = await signIn({
-        email: formData.email,
-        password: formData.password
-      })
+      console.log('🔐 Attempting sign in...', { email: formData.email })
       
-      console.log('📊 Signin result:', result)
+      const { data, error } = await signIn(formData.email, formData.password)
       
-      if (!result.success) {
-        console.error('❌ Signin failed:', result.error)
-        setApiError(result.error || 'Login failed. Please check your credentials.')
+      if (error) {
+        console.error('❌ Sign in error:', error)
+        
+        // Provide user-friendly error messages with toast
+        if (error.includes('Invalid login credentials')) {
+          const message = 'Invalid email or password. Please check your credentials.'
+          setApiError(message)
+          toast.error('Sign In Failed', {
+            description: message,
+            duration: 5000,
+          })
+        } else if (error.includes('Email not confirmed')) {
+          const message = 'Please confirm your email address before signing in.'
+          setApiError(message)
+          toast.error('Email Not Confirmed', {
+            description: message,
+            duration: 5000,
+          })
+        } else {
+          setApiError(error)
+          toast.error('Sign In Failed', {
+            description: error,
+            duration: 5000,
+          })
+        }
       } else {
-        console.log('✅ Signin successful, waiting for redirect...')
+        console.log('✅ Sign in successful!', data)
+        
+        // Get user profile to determine redirect
+        const { data: { user } } = await supabase.auth.getUser()
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, full_name')
+          .eq('id', user?.id)
+          .single()
+        
+        console.log('👤 User profile:', profile)
+        
+        // Success toast with personalized message
+        toast.success('Welcome back!', {
+          description: profile?.full_name ? `Welcome back, ${profile.full_name}!` : 'You have successfully signed in.',
+          duration: 3000,
+        })
+        
+        // Redirect based on role or callback URL
+        setTimeout(() => {
+          if (callbackUrl && callbackUrl !== '/properties') {
+            console.log('🔄 Redirecting to callback:', callbackUrl)
+            router.push(callbackUrl)
+          } else if (profile?.role === 'landlord') {
+            console.log('🔄 Redirecting to landlord dashboard...')
+            router.push('/landlord/dashboard')
+          } else {
+            console.log('🔄 Redirecting to properties page...')
+            router.push('/properties')
+          }
+          router.refresh()
+        }, 500)
       }
-      // Success handled by useAuthFastAPI hook (redirects automatically)
     } catch (error: any) {
-      console.error('❌ Signin exception:', error)
-      setApiError(error.message || 'An unexpected error occurred')
+      console.error('❌ Unexpected sign in error:', error)
+      const message = 'An unexpected error occurred. Please try again.'
+      setApiError(message)
+      toast.error('Error', {
+        description: message,
+        duration: 5000,
+      })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle()
+    } catch (error: any) {
+      setApiError(error.message || 'Google sign-in failed')
     }
   }
 
@@ -85,13 +150,13 @@ export default function SignInPage() {
     <div className="min-h-screen bg-warm-ivory-gradient relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-amber-200/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-48 h-48 bg-slate-300/30 rounded-full blur-2xl animate-bounce" style={{animationDelay: '2s', animationDuration: '4s'}}></div>
-        <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-amber-100/40 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s', animationDuration: '3s'}}></div>
+        <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-orange-100/40 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s', animationDuration: '3s'}}></div>
       </div>
 
       {/* Back Button */}
-      <a href="/" className="absolute top-6 left-6 z-50 inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-amber-600 transition-colors duration-300 rounded-lg hover:bg-slate-100 cursor-pointer">
+      <a href="/" className="absolute top-6 left-6 z-50 inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-orange-600 transition-colors duration-300 rounded-lg hover:bg-slate-100 cursor-pointer">
         <ArrowLeft className="h-4 w-4" />
         <span className="font-medium">Back to Home</span>
       </a>
@@ -103,7 +168,7 @@ export default function SignInPage() {
             <Link href="/" className="inline-block mb-6">
               <div className="text-3xl font-bold">
                 <span className="text-slate-800">Nulo</span> 
-                <span className="text-amber-600">Africa</span>
+                <span className="text-orange-600">Africa</span>
               </div>
             </Link>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome back</h1>
@@ -140,7 +205,7 @@ export default function SignInPage() {
                       className={`w-full h-12 pl-10 pr-4 rounded-xl border-2 transition-all duration-300 ${
                         errors.email 
                           ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                          : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
+                          : 'border-slate-300 bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20'
                       } focus:outline-none text-slate-800 placeholder:text-slate-400`}
                       placeholder="Enter your email"
                     />
@@ -169,7 +234,7 @@ export default function SignInPage() {
                       className={`w-full h-12 pl-10 pr-12 rounded-xl border-2 transition-all duration-300 ${
                         errors.password 
                           ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                          : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
+                          : 'border-slate-300 bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20'
                       } focus:outline-none text-slate-800 placeholder:text-slate-400`}
                       placeholder="Enter your password"
                     />
@@ -194,13 +259,13 @@ export default function SignInPage() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500 focus:ring-2"
+                      className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500 focus:ring-2"
                     />
                     <span className="text-sm text-slate-600">Remember me</span>
                   </label>
                   <Link 
                     href="/forgot-password" 
-                    className="text-sm text-amber-600 hover:text-amber-700 transition-colors duration-200"
+                    className="text-sm text-orange-600 hover:text-orange-700 transition-colors duration-200"
                   >
                     Forgot password?
                   </Link>
@@ -237,6 +302,8 @@ export default function SignInPage() {
                   <Button
                     type="button"
                     variant="outline"
+                    onClick={handleGoogleSignIn}
+                    disabled={isLoading}
                     className="h-12 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl transition-all duration-300"
                   >
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -250,7 +317,8 @@ export default function SignInPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-12 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl transition-all duration-300"
+                    disabled={true}
+                    className="h-12 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl transition-all duration-300 opacity-50 cursor-not-allowed"
                   >
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -266,7 +334,7 @@ export default function SignInPage() {
               Don't have an account?{" "}
                   <Link 
                     href="/signup" 
-                    className="text-amber-600 hover:text-amber-700 font-semibold transition-colors duration-200"
+                    className="text-orange-600 hover:text-orange-700 font-semibold transition-colors duration-200"
                   >
                     Sign up for free
               </Link>
@@ -279,15 +347,15 @@ export default function SignInPage() {
           <div className="mt-8 text-center">
             <div className="flex items-center justify-center gap-6 text-slate-600">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600" />
+                <CheckCircle className="h-4 w-4 text-orange-600" />
                 <span className="text-sm">Secure</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600" />
+                <CheckCircle className="h-4 w-4 text-orange-600" />
                 <span className="text-sm">Verified</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600" />
+                <CheckCircle className="h-4 w-4 text-orange-600" />
                 <span className="text-sm">Trusted</span>
               </div>
             </div>

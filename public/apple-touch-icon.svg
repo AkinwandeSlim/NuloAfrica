@@ -1,0 +1,7 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Orange rounded square background (iOS style) -->
+  <rect width="180" height="180" rx="40" fill="#ea580c"/>
+  
+  <!-- White home icon -->
+  <path d="M90 45L50.625 75.9375V135H73.125V101.25H106.875V135H129.375V75.9375L90 45Z" fill="white" stroke="white" stroke-width="4" stroke-linejoin="round"/>
+</svg>

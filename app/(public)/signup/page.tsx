@@ -1,16 +1,25 @@
 "use client"
 
-import { useState } from "react"
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, ArrowLeft, CheckCircle, ArrowRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ArrowLeft, CheckCircle, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useAuthFastAPI } from "@/hooks/useAuthFastAPI"
-import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter, useSearchParams } from "next/navigation"
+import { toast } from "sonner"
+import { SignupStepIndicator } from "@/components/auth/SignupStepIndicator"
+import { PersonalInfoStep } from "@/components/auth/PersonalInfoStep"
+import { AccountSetupStep } from "@/components/auth/AccountSetupStep"
+import { PreferencesStep } from "@/components/auth/PreferencesStep"
 
 export default function SignUpPage() {
   const router = useRouter()
-  const { signUp, loading: authLoading } = useAuthFastAPI()
+  const searchParams = useSearchParams()
+  const { signUp, loading } = useAuth()
+  
+  // Get callback URL from query params (if user came from a specific page)
+  const callbackUrl = searchParams.get('callbackUrl')
   
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
@@ -24,8 +33,6 @@ export default function SignUpPage() {
     location: "",
     agreeToTerms: false
   })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState<string | null>(null)
@@ -100,7 +107,10 @@ export default function SignUpPage() {
   const validateStep3 = () => {
     const newErrors: Record<string, string> = {}
     
-    if (!formData.location) {
+    // Only validate location for tenants (who need preferences)
+    const isLandlord = formData.userType === 'landlord'
+    
+    if (!isLandlord && !formData.location) {
       newErrors.location = "Location is required"
     }
     
@@ -116,6 +126,14 @@ export default function SignUpPage() {
     if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2)
     } else if (currentStep === 2 && validateStep2()) {
+      // Landlords skip preferences step (step 3) - they submit directly
+      const isLandlord = formData.userType === 'landlord'
+      if (isLandlord) {
+        // For landlords, submit after step 2
+        handleSubmit(new Event('submit') as any)
+        return
+      }
+      // Tenants go to step 3 (preferences)
       setCurrentStep(3)
     }
   }
@@ -129,52 +147,120 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateStep3()) return
+    // For landlords, validate step 2. For tenants, validate step 3
+    const isLandlord = formData.userType === 'landlord'
+    const isValid = isLandlord ? validateStep2() : validateStep3()
+    
+    if (!isValid) return
     
     setIsLoading(true)
     setApiError(null)
     
     try {
-      // Map form data to API format
+      // Normalize user type to match database role
       const userType = formData.userType === 'renter' ? 'tenant' : 
                        formData.userType === 'landlord' ? 'landlord' : 'tenant'
       
-      const result = await signUp({
-        email: formData.email,
-        password: formData.password,
+      const signupData = {
         full_name: `${formData.firstName} ${formData.lastName}`,
-        user_type: userType as 'tenant' | 'landlord',
-        phone_number: formData.phone
+        phone_number: formData.phone,
+        user_type: userType as 'tenant' | 'landlord'
+      }
+      
+      console.log('🚀 Starting sign up...', {
+        email: formData.email,
+        role: userType,
+        name: signupData.full_name,
+        phone: signupData.phone_number,
+        fullData: signupData
       })
       
-      if (!result.success) {
-        setApiError(result.error || 'Registration failed. Please try again.')
+      const { data, error } = await signUp(formData.email, formData.password, signupData)
+      
+      if (error) {
+        console.error('❌ Sign up error:', error)
+        
+        // Parse error message for better user feedback
+        let message = error || 'Registration failed. Please try again.'
+        
+        // Check for common errors
+        if (message.includes('already registered') || message.includes('already exists')) {
+          message = 'This email is already registered. Please sign in instead.'
+        } else if (message.includes('password')) {
+          message = 'Password must be at least 6 characters long.'
+        } else if (message.includes('email')) {
+          message = 'Please enter a valid email address.'
+        }
+        
+        setApiError(message)
+        toast.error('Sign Up Failed', {
+          description: message,
+          duration: 5000,
+        })
+      } else {
+        console.log('✅ Sign up successful!', data)
+        
+        // Success toast
+        toast.success('Account Created!', {
+          description: `Welcome to NuloAfrica, ${formData.firstName}! ${userType === 'landlord' ? 'You can now list properties.' : 'Start browsing properties.'}`,
+          duration: 3000,
+        })
+        
+        // Smart redirect based on user type and callback URL
+        setTimeout(() => {
+          if (userType === 'landlord') {
+            console.log('🔄 Redirecting to landlord dashboard...')
+            router.push('/landlord')
+          } else {
+            // For tenants: redirect to callback URL if exists, otherwise properties listing
+            if (callbackUrl) {
+              console.log('🔄 Redirecting back to:', callbackUrl)
+              router.push(callbackUrl)
+            } else {
+              console.log('🔄 Redirecting to properties listing...')
+              router.push('/properties')
+            }
+          }
+          router.refresh()
+        }, 500)
       }
-      // Success handled by useAuthFastAPI hook (redirects automatically)
     } catch (error: any) {
-      setApiError(error.message || 'An unexpected error occurred')
+      console.error('❌ Unexpected error:', error)
+      const message = error.message || 'An unexpected error occurred'
+      setApiError(message)
+      toast.error('Error', {
+        description: message,
+        duration: 5000,
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const steps = [
+  // Dynamic steps based on user type
+  const isLandlord = formData.userType === 'landlord'
+  const steps = isLandlord ? [
     { number: 1, title: "Personal Info", description: "Tell us about yourself" },
-    { number: 2, title: "Account Setup", description: "Create your account" },
-    { number: 3, title: "Preferences", description: "Complete your profile" }
+    { number: 2, title: "Account Setup", description: "Create your account & agree to terms" }
+  ] : [
+    { number: 1, title: "Personal Info", description: "Tell us about yourself" },
+    { number: 2, title: "Account Setup", description: "Create your account & agree to terms" },
+    { number: 3, title: "Preferences", description: "Where are you looking?" }
   ]
+  
+  const totalSteps = isLandlord ? 2 : 3
 
   return (
     <div className="min-h-screen bg-warm-ivory-gradient relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-amber-200/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-48 h-48 bg-slate-300/30 rounded-full blur-2xl animate-bounce" style={{animationDelay: '2s', animationDuration: '4s'}}></div>
-        <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-amber-100/40 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s', animationDuration: '3s'}}></div>
+        <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-orange-100/40 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s', animationDuration: '3s'}}></div>
       </div>
 
       {/* Back Button */}
-      <a href="/" className="absolute top-6 left-6 z-50 inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-amber-600 transition-colors duration-300 rounded-lg hover:bg-slate-100 cursor-pointer">
+      <a href="/" className="absolute top-6 left-6 z-50 inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-orange-600 transition-colors duration-300 rounded-lg hover:bg-slate-100 cursor-pointer">
         <ArrowLeft className="h-4 w-4" />
         <span className="font-medium">Back to Home</span>
       </a>
@@ -186,7 +272,7 @@ export default function SignUpPage() {
             <Link href="/" className="inline-block mb-6">
               <div className="text-3xl font-bold">
                 <span className="text-slate-800">Nulo</span> 
-                <span className="text-amber-600">Africa</span>
+                <span className="text-orange-600">Africa</span>
               </div>
             </Link>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Create your account</h1>
@@ -194,38 +280,7 @@ export default function SignUpPage() {
           </div>
 
           {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-4">
-              {steps.map((step, index) => (
-                <div key={step.number} className="flex items-center">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                    currentStep >= step.number
-                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 border-amber-600 text-white'
-                      : 'border-slate-300 text-slate-400'
-                  }`}>
-                    {currentStep > step.number ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      <span className="text-sm font-semibold">{step.number}</span>
-                    )}
-                  </div>
-                  <div className="ml-3 hidden sm:block">
-                    <p className={`text-sm font-medium ${
-                      currentStep >= step.number ? 'text-slate-900' : 'text-slate-400'
-                    }`}>
-                      {step.title}
-                    </p>
-                    <p className="text-xs text-slate-500">{step.description}</p>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={`w-8 h-0.5 mx-4 ${
-                      currentStep > step.number ? 'bg-gradient-to-r from-amber-600 to-amber-700' : 'bg-slate-300'
-                    }`}></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <SignupStepIndicator currentStep={currentStep} steps={steps} />
 
           {/* Sign Up Form */}
           <Card className="border-0 luxury-shadow-lg rounded-2xl luxury-glass-strong">
@@ -243,291 +298,41 @@ export default function SignUpPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Step 1: Personal Information */}
                 {currentStep === 1 && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-2">
-                          First Name
-                        </label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type="text"
-                            id="firstName"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            className={`w-full h-12 pl-10 pr-4 rounded-xl border-2 transition-all duration-300 ${
-                              errors.firstName 
-                                ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                                : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                            } focus:outline-none text-slate-800 placeholder:text-slate-400`}
-                            placeholder="Enter your first name"
-                          />
-                        </div>
-                        {errors.firstName && (
-                          <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                            <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                            {errors.firstName}
-                          </p>
-                        )}
-            </div>
-
-                      <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-2">
-                          Last Name
-                        </label>
-            <div className="relative">
-                          <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type="text"
-                            id="lastName"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            className={`w-full h-12 pl-10 pr-4 rounded-xl border-2 transition-all duration-300 ${
-                              errors.lastName 
-                                ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                                : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                            } focus:outline-none text-slate-800 placeholder:text-slate-400`}
-                            placeholder="Enter your last name"
-                          />
-              </div>
-                        {errors.lastName && (
-                          <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                            <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                            {errors.lastName}
-                          </p>
-                        )}
-              </div>
-            </div>
-
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                        Email Address
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className={`w-full h-12 pl-10 pr-4 rounded-xl border-2 transition-all duration-300 ${
-                            errors.email 
-                              ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                              : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                          } focus:outline-none text-slate-800 placeholder:text-slate-400`}
-                          placeholder="Enter your email"
-                        />
-                      </div>
-                      {errors.email && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-2">
-                        Phone Number
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="tel"
-                          id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className={`w-full h-12 pl-10 pr-4 rounded-xl border-2 transition-all duration-300 ${
-                            errors.phone 
-                              ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                              : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                          } focus:outline-none text-slate-800 placeholder:text-slate-400`}
-                          placeholder="Enter your phone number"
-                        />
-                      </div>
-                      {errors.phone && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.phone}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <PersonalInfoStep
+                    formData={{
+                      firstName: formData.firstName,
+                      lastName: formData.lastName,
+                      email: formData.email,
+                      phone: formData.phone
+                    }}
+                    errors={errors}
+                    onChange={handleInputChange}
+                  />
                 )}
 
                 {/* Step 2: Account Setup */}
                 {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                        Password
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          id="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          className={`w-full h-12 pl-10 pr-12 rounded-xl border-2 transition-all duration-300 ${
-                            errors.password 
-                              ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                              : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                          } focus:outline-none text-slate-800 placeholder:text-slate-400`}
-                          placeholder="Create a strong password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-200"
-                        >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
-              </div>
-                      {errors.password && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.password}
-                        </p>
-                      )}
-              </div>
-
-                    <div>
-                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
-                        Confirm Password
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type={showConfirmPassword ? "text" : "password"}
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          className={`w-full h-12 pl-10 pr-12 rounded-xl border-2 transition-all duration-300 ${
-                            errors.confirmPassword 
-                              ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                              : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                          } focus:outline-none text-slate-800 placeholder:text-slate-400`}
-                          placeholder="Confirm your password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-200"
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
-              </div>
-                      {errors.confirmPassword && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.confirmPassword}
-                        </p>
-                      )}
-              </div>
-
-                    <div>
-                      <label htmlFor="userType" className="block text-sm font-medium text-slate-700 mb-2">
-                        I am a
-                      </label>
-                      <select
-                        id="userType"
-                        name="userType"
-                        value={formData.userType}
-                        onChange={handleInputChange}
-                        className={`w-full h-12 px-4 rounded-xl border-2 transition-all duration-300 ${
-                          errors.userType 
-                            ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                            : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                        } focus:outline-none text-slate-800`}
-                      >
-                        <option value="">Select user type</option>
-                        <option value="renter">Looking to rent</option>
-                        <option value="landlord">Property owner/landlord</option>
-                        <option value="agent">Real estate agent</option>
-                      </select>
-                      {errors.userType && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.userType}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  <AccountSetupStep
+                    formData={{
+                      password: formData.password,
+                      confirmPassword: formData.confirmPassword,
+                      userType: formData.userType,
+                      agreeToTerms: formData.agreeToTerms
+                    }}
+                    errors={errors}
+                    onChange={handleInputChange}
+                  />
                 )}
 
-                {/* Step 3: Preferences */}
+                {/* Step 3: Preferences (Tenant Only) */}
                 {currentStep === 3 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label htmlFor="location" className="block text-sm font-medium text-slate-700 mb-2">
-                        Preferred Location
-                      </label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                        <select
-                          id="location"
-                          name="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          className={`w-full h-12 pl-10 pr-4 rounded-xl border-2 transition-all duration-300 ${
-                            errors.location 
-                              ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
-                              : 'border-slate-300 bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20'
-                          } focus:outline-none text-slate-800`}
-                        >
-                          <option value="">Select your preferred city</option>
-                          <option value="lagos">Lagos, Nigeria</option>
-                          <option value="nairobi">Nairobi, Kenya</option>
-                          <option value="cape-town">Cape Town, South Africa</option>
-                          <option value="accra">Accra, Ghana</option>
-                          <option value="cairo">Cairo, Egypt</option>
-                          <option value="casablanca">Casablanca, Morocco</option>
-                        </select>
-                      </div>
-                      {errors.location && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.location}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="agreeToTerms"
-                          checked={formData.agreeToTerms}
-                          onChange={handleInputChange}
-                          className="w-5 h-5 text-amber-600 border-slate-300 rounded focus:ring-amber-500 focus:ring-2 mt-0.5"
-                        />
-                        <span className="text-sm text-slate-600">
-                  I agree to the{" "}
-                          <Link href="/terms" className="text-amber-600 hover:text-amber-700 underline">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                          <Link href="/privacy" className="text-amber-600 hover:text-amber-700 underline">
-                    Privacy Policy
-                  </Link>
-                        </span>
-                </label>
-                      {errors.agreeToTerms && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                          {errors.agreeToTerms}
-                        </p>
-                      )}
-                    </div>
-              </div>
+                  <PreferencesStep
+                    formData={{
+                      location: formData.location
+                    }}
+                    errors={errors}
+                    onChange={handleInputChange}
+                  />
                 )}
 
                 {/* Navigation Buttons */}
@@ -545,14 +350,24 @@ export default function SignUpPage() {
                     <div></div>
                   )}
 
-                  {currentStep < 3 ? (
+                  {currentStep < totalSteps ? (
                     <Button
                       type="button"
                       onClick={handleNext}
-                      className="px-8 py-3 luxury-gradient-button text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2"
+                      disabled={isLoading}
+                      className="px-8 py-3 luxury-gradient-button text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Next
-                      <ArrowRight className="h-4 w-4" />
+                      {isLoading && isLandlord && currentStep === 2 ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Creating account...
+                        </div>
+                      ) : (
+                        <>
+                          {isLandlord && currentStep === 2 ? "Create Account" : "Next"}
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
                     </Button>
                   ) : (
                     <Button
@@ -568,39 +383,39 @@ export default function SignUpPage() {
                       ) : (
                         "Create Account"
                       )}
-              </Button>
+                    </Button>
                   )}
                 </div>
-            </form>
+              </form>
 
               {/* Sign In Link */}
               <div className="mt-8 text-center">
                 <p className="text-slate-600">
-              Already have an account?{" "}
+                  Already have an account?{" "}
                   <Link 
                     href="/signin" 
-                    className="text-amber-600 hover:text-amber-700 font-semibold transition-colors duration-200"
+                    className="text-orange-600 hover:text-orange-700 font-semibold transition-colors duration-200"
                   >
                     Sign in here
-              </Link>
-            </p>
+                  </Link>
+                </p>
               </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
           {/* Trust Indicators */}
           <div className="mt-8 text-center">
             <div className="flex items-center justify-center gap-6 text-slate-600">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600" />
+                <CheckCircle className="h-4 w-4 text-orange-600" />
                 <span className="text-sm">Secure</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600" />
+                <CheckCircle className="h-4 w-4 text-orange-600" />
                 <span className="text-sm">Verified</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600" />
+                <CheckCircle className="h-4 w-4 text-orange-600" />
                 <span className="text-sm">Trusted</span>
               </div>
             </div>

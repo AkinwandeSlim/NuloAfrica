@@ -630,14 +630,14 @@ html {
         }
 
         .luxury-gradient-button {
-          background: linear-gradient(135deg, #d4a857, #e7c57b);
-          box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+          background: linear-gradient(135deg, #ea580c, #f97316);
+          box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
           transition: all 0.3s ease;
         }
 
         .luxury-gradient-button:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+          box-shadow: 0 8px 20px rgba(234, 88, 12, 0.4);
         }
 
         .luxury-filter-pill {
@@ -951,4 +951,463 @@ html {
 .animate-gradient-shift {
   background-size: 200% 200%;
   animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% auto;
+  animation: gradient-x 3s ease infinite;
+}
+
+@keyframes ken-burns {
+  0% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1.15);
+  }
+}
+
+.animate-ken-burns {
+  animation: ken-burns 20s ease-in-out infinite alternate;
+}
+
+/* Lightning and Energy Effects */
+@keyframes lightning-flash {
+  0%, 100% {
+    opacity: 0;
+  }
+  10%, 30%, 50% {
+    opacity: 1;
+  }
+  20%, 40%, 60% {
+    opacity: 0;
+  }
+}
+
+@keyframes energy-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.4),
+                0 0 40px rgba(251, 146, 60, 0.2),
+                inset 0 0 20px rgba(251, 146, 60, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(251, 146, 60, 0.8),
+                0 0 80px rgba(251, 146, 60, 0.4),
+                inset 0 0 40px rgba(251, 146, 60, 0.2);
+  }
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(0) translateX(0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-200px) translateX(50px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer-wave {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+@keyframes glow-rotate {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    filter: hue-rotate(20deg) brightness(1.2);
+  }
+  100% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+}
+
+.animate-lightning-flash {
+  animation: lightning-flash 4s ease-in-out infinite;
+}
+
+.animate-energy-pulse {
+  animation: energy-pulse 3s ease-in-out infinite;
+}
+
+.animate-particle-float {
+  animation: particle-float 5s ease-out infinite;
+}
+
+.animate-shimmer-wave {
+  animation: shimmer-wave 3s linear infinite;
+}
+
+.animate-glow-rotate {
+  animation: glow-rotate 4s ease-in-out infinite;
+}
+
+/* Texture Overlays */
+.texture-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.texture-dots {
+  background-image: radial-gradient(circle, rgba(251, 146, 60, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.texture-grid {
+  background-image: 
+    linear-gradient(rgba(251, 146, 60, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 146, 60, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.texture-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 40px,
+    rgba(251, 146, 60, 0.08) 40px,
+    rgba(251, 146, 60, 0.08) 42px
+  );
+}
+
+.texture-stripes-vertical {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 60px,
+    rgba(251, 146, 60, 0.12) 60px,
+    rgba(251, 146, 60, 0.12) 62px
+  );
+}
+
+.texture-square-grid {
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 80px,
+      rgba(251, 146, 60, 0.15) 80px,
+      rgba(251, 146, 60, 0.15) 82px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 80px,
+      rgba(251, 146, 60, 0.15) 80px,
+      rgba(251, 146, 60, 0.15) 82px
+    );
+}
+
+.texture-lines-center {
+  background-image: 
+    linear-gradient(90deg, transparent 0%, transparent 30%, rgba(251, 146, 60, 0.15) 48%, rgba(251, 146, 60, 0.2) 50%, rgba(251, 146, 60, 0.15) 52%, transparent 70%, transparent 100%),
+    linear-gradient(0deg, transparent 0%, transparent 30%, rgba(251, 146, 60, 0.12) 48%, rgba(251, 146, 60, 0.18) 50%, rgba(251, 146, 60, 0.12) 52%, transparent 70%, transparent 100%);
+}
+
+/* ============================================
+   Toast Notifications - Strategic Positioning
+   ============================================ */
+
+/* Toast container positioning */
+[data-sonner-toaster] {
+  z-index: 9999 !important;
+}
+
+/* Individual toast styling */
+[data-sonner-toast] {
+  backdrop-filter: blur(12px);
+  border-radius: 12px !important;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  padding: 16px !important;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+/* Toast on mobile - full width, better positioning */
+@media (max-width: 640px) {
+  [data-sonner-toast] {
+    min-width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
+    margin: 0 1rem;
+  }
+  
+  [data-sonner-toaster] {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 1rem !important;
+  }
+}
+
+/* Success toast - elegant white with green accent */
+[data-sonner-toast][data-type="success"] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid rgba(16, 185, 129, 0.3) !important;
+  color: rgba(21, 21, 21, 0.95) !important;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(16, 185, 129, 0.05) !important;
+}
+
+[data-sonner-toast][data-type="success"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 1) 0%, rgba(5, 150, 105, 1) 100%);
+  border-radius: 12px 0 0 12px;
+}
+
+/* Error toast - elegant white with orange accent */
+[data-sonner-toast][data-type="error"] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid rgba(251, 146, 60, 0.3) !important;
+  color: rgba(21, 21, 21, 0.95) !important;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(251, 146, 60, 0.05) !important;
+}
+
+[data-sonner-toast][data-type="error"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(251, 146, 60, 1) 0%, rgba(249, 115, 22, 1) 100%);
+  border-radius: 12px 0 0 12px;
+}
+
+/* Info toast - elegant white with slate accent */
+[data-sonner-toast][data-type="info"] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid rgba(71, 85, 105, 0.3) !important;
+  color: rgba(21, 21, 21, 0.95) !important;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(71, 85, 105, 0.05) !important;
+}
+
+[data-sonner-toast][data-type="info"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(71, 85, 105, 1) 0%, rgba(51, 65, 85, 1) 100%);
+  border-radius: 12px 0 0 12px;
+}
+
+/* Warning toast - elegant white with gold accent */
+[data-sonner-toast][data-type="warning"] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 2px solid rgba(212, 168, 87, 0.3) !important;
+  color: rgba(21, 21, 21, 0.95) !important;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(212, 168, 87, 0.05) !important;
+}
+
+[data-sonner-toast][data-type="warning"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(212, 168, 87, 1) 0%, rgba(231, 197, 123, 1) 100%);
+  border-radius: 12px 0 0 12px;
+}
+
+/* Toast action button styling - elegant dark button on white background */
+[data-sonner-toast] button[data-button] {
+  background: rgba(21, 21, 21, 0.95) !important;
+  border: 2px solid rgba(21, 21, 21, 1) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 8px 20px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-sonner-toast] button[data-button]:hover {
+  background: rgba(21, 21, 21, 1) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Success button - green accent */
+[data-sonner-toast][data-type="success"] button[data-button] {
+  background: rgba(16, 185, 129, 0.95) !important;
+  border: 2px solid rgba(16, 185, 129, 1) !important;
+}
+
+[data-sonner-toast][data-type="success"] button[data-button]:hover {
+  background: rgba(16, 185, 129, 1) !important;
+}
+
+/* Error button - orange accent */
+[data-sonner-toast][data-type="error"] button[data-button] {
+  background: rgba(251, 146, 60, 0.95) !important;
+  border: 2px solid rgba(251, 146, 60, 1) !important;
+}
+
+[data-sonner-toast][data-type="error"] button[data-button]:hover {
+  background: rgba(251, 146, 60, 1) !important;
+}
+
+/* Warning button - gold accent */
+[data-sonner-toast][data-type="warning"] button[data-button] {
+  background: rgba(212, 168, 87, 0.95) !important;
+  border: 2px solid rgba(212, 168, 87, 1) !important;
+  color: rgba(21, 21, 21, 0.95) !important;
+}
+
+[data-sonner-toast][data-type="warning"] button[data-button]:hover {
+  background: rgba(212, 168, 87, 1) !important;
+}
+
+/* Close button styling - minimal and elegant */
+[data-sonner-toast] button[data-close-button] {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: rgba(21, 21, 21, 0.6) !important;
+  border-radius: 6px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-sonner-toast] button[data-close-button]:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: rgba(21, 21, 21, 0.9) !important;
+  transform: scale(1.1);
+}
+
+/* Toast animation improvements */
+[data-sonner-toast] {
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Prevent toast from covering important UI elements */
+@media (min-width: 1024px) {
+  /* On desktop, ensure toasts don't cover property cards or map */
+  [data-sonner-toaster] {
+    bottom: 2rem !important;
+    right: 2rem !important;
+  }
+}
+
+/* Stack multiple toasts nicely */
+[data-sonner-toast]:not(:first-child) {
+  margin-top: 0.75rem;
+}
+
+/* Reduce opacity for toasts that are stacked behind */
+[data-sonner-toast]:nth-child(2) {
+  opacity: 0.9;
+  transform: scale(0.98) translateY(-4px);
+}
+
+[data-sonner-toast]:nth-child(3) {
+  opacity: 0.8;
+  transform: scale(0.96) translateY(-8px);
+}
+
+/* ============================================
+   Custom Scrollbar - Modern & Sleek
+   ============================================ */
+
+/* Custom scrollbar for profile gate modal */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(251, 146, 60, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.4), rgba(249, 115, 22, 0.6));
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.7), rgba(249, 115, 22, 0.9));
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(251, 146, 60, 0.9), rgba(249, 115, 22, 1));
+}
+
+/* Shimmer animation for progress bar */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }

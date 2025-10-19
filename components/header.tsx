@@ -2,93 +2,71 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, Heart, User, Home, Building2, LayoutDashboard, Info, MessageSquare, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { useState } from "react"
+import { Logo } from "@/components/logo"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-          <div className="text-2xl font-bold">
-            <span className="text-slate-900">Nulo</span> <span className="text-amber-600">Africa</span>
+    <header className="sticky top-0 z-50 w-full bg-white/98 backdrop-blur-lg border-b border-slate-100 shadow-sm">
+      <div className="container mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
+        {/* Logo - Left */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <Logo size={36} className="flex-shrink-0 transition-transform group-hover:scale-105" />
+          <div className="text-xl font-semibold tracking-tight">
+            <span className="text-slate-900">Nulo</span>
+            <span className="text-[#FF6600]">Africa</span>
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 md:flex">
+        {/* Center Navigation - Desktop */}
+        <nav className="hidden lg:flex items-center gap-8">
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-700 transition-all hover:text-amber-600 hover:-translate-y-0.5"
+            className="relative text-[15px] font-medium text-slate-700 transition-colors hover:text-[#FF6600] group"
           >
-            <Home className="h-4 w-4" />
             Home
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FF6600] transition-all group-hover:w-full" />
           </Link>
           <Link
             href="/properties"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-700 transition-all hover:text-amber-600 hover:-translate-y-0.5"
+            className="relative text-[15px] font-medium text-slate-700 transition-colors hover:text-[#FF6600] group"
           >
-            <Building2 className="h-4 w-4" />
-            Properties
-          </Link>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-700 transition-all hover:text-amber-600 hover:-translate-y-0.5"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Dashboard
+            Rent
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FF6600] transition-all group-hover:w-full" />
           </Link>
           <Link
             href="/about"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-700 transition-all hover:text-amber-600 hover:-translate-y-0.5"
+            className="relative text-[15px] font-medium text-slate-700 transition-colors hover:text-[#FF6600] group"
           >
-            <Info className="h-4 w-4" />
             About
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FF6600] transition-all group-hover:w-full" />
+          </Link>
+          <Link
+            href="/contact"
+            className="relative text-[15px] font-medium text-slate-700 transition-colors hover:text-[#FF6600] group"
+          >
+            Contact
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FF6600] transition-all group-hover:w-full" />
           </Link>
         </nav>
 
-        {/* Desktop Actions */}
-        <div className="hidden items-center gap-2 md:flex">
+        {/* Right Actions - Desktop */}
+        <div className="hidden lg:flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
-            className="text-slate-700 hover:text-amber-600 hover:bg-amber-50 transition-all duration-300"
+            className="h-10 px-5 text-[15px] font-medium text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5 transition-all rounded-lg"
             asChild
           >
-            <Link href="/dashboard">
-              <Heart className="mr-2 h-4 w-4" />
-              Favorites
-            </Link>
+            <Link href="/tenant">I'm a Tenant</Link>
           </Button>
           <Button
-            variant="ghost"
-            size="sm"
-            className="text-slate-700 hover:text-amber-600 hover:bg-amber-50 transition-all duration-300"
+            className="h-10 px-5 text-[15px] font-medium bg-[#FF6600] hover:bg-[#FF6600]/90 text-white transition-all rounded-lg shadow-sm hover:shadow-md"
             asChild
           >
-            <Link href="/dashboard?tab=messages">
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Messages
-            </Link>
-          </Button>
-          <Button
-            size="sm"
-            className="bg-amber-500 hover:bg-amber-600 text-white transition-all duration-300 hover:shadow-lg rounded-xl"
-            asChild
-          >
-            <Link href="/signin">
-              <User className="mr-2 h-4 w-4" />
-              Sign In
-            </Link>
-          </Button>
-          <Button
-            size="sm"
-            className="bg-slate-900 hover:bg-slate-800 text-white transition-all duration-300 hover:shadow-lg rounded-xl"
-            asChild
-          >
-            <Link href="/signup">Sign Up</Link>
+            <Link href="/landlord">I'm a Landlord</Link>
           </Button>
         </div>
 
@@ -96,71 +74,60 @@ export function Header() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="md:hidden text-slate-700 hover:text-amber-600" 
+          className="lg:hidden text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5" 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Elegant Slide Down */}
       {mobileMenuOpen && (
-        <div className="border-t border-stone-200 bg-white md:hidden">
-          <nav className="container mx-auto flex flex-col gap-1 px-2 py-4">
+        <div className="border-t border-slate-100 bg-white lg:hidden animate-in slide-in-from-top-2 duration-200">
+          <nav className="container mx-auto flex flex-col gap-1 px-4 py-6">
             <Link 
               href="/" 
-              className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg transition-colors"
+              className="text-[15px] font-medium text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5 px-4 py-3 rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Home className="h-4 w-4" />
               Home
             </Link>
             <Link
               href="/properties"
-              className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg transition-colors"
+              className="text-[15px] font-medium text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5 px-4 py-3 rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Building2 className="h-4 w-4" />
-              Properties
-            </Link>
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
+              Rent
             </Link>
             <Link
               href="/about"
-              className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg transition-colors"
+              className="text-[15px] font-medium text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5 px-4 py-3 rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Info className="h-4 w-4" />
               About
             </Link>
             <Link
-              href="/dashboard"
-              className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg transition-colors"
+              href="/contact"
+              className="text-[15px] font-medium text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5 px-4 py-3 rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <Heart className="h-4 w-4" />
-              Favorites
+              Contact
             </Link>
-            <Link
-              href="/dashboard?tab=messages"
-              className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-amber-600 hover:bg-amber-50 px-4 py-2 rounded-lg transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <MessageSquare className="h-4 w-4" />
-              Messages
-            </Link>
-            <div className="flex gap-2 pt-4 mt-2 border-t border-stone-200">
-              <Button variant="outline" className="flex-1 border-slate-300 text-slate-700 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-500" asChild>
-                <Link href="/signin">Sign In</Link>
+            
+            {/* Mobile CTA Buttons */}
+            <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-slate-100">
+              <Button 
+                variant="ghost" 
+                className="w-full h-11 text-[15px] font-medium text-slate-700 hover:text-[#FF6600] hover:bg-[#FF6600]/5 rounded-lg" 
+                asChild
+              >
+                <Link href="/tenant">I'm a Tenant</Link>
               </Button>
-              <Button className="flex-1 bg-amber-500 hover:bg-amber-600 text-white" asChild>
-                <Link href="/signup">Sign Up</Link>
+              <Button 
+                className="w-full h-11 text-[15px] font-medium bg-[#FF6600] hover:bg-[#FF6600]/90 text-white rounded-lg shadow-sm" 
+                asChild
+              >
+                <Link href="/landlord">I'm a Landlord</Link>
               </Button>
             </div>
           </nav>

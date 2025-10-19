@@ -1,20 +1,11 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { createClient } from '@supabase/supabase-js'
 
-// For client components
+// For client components - this is what you should use in React components
+// This uses the NEXT_PUBLIC_SUPABASE_ANON_KEY which is safe to expose
 export const supabase = createClientComponentClient()
 
-// For server components and API routes (with service role if needed)
-export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+// IMPORTANT: Never import supabaseAdmin in client components!
+// Admin client is only in lib/supabase/server.ts for API routes
 
 // Database types (will be auto-generated from Supabase)
 export type Database = {

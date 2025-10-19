@@ -1,15 +1,26 @@
 "use client"
-
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
   MapPin, Bed, Bath, Square, Heart, Share2, ChevronLeft, ChevronRight,
-  Home, Wifi, Car, Dumbbell, Shield, Wind, Tv, Coffee, Check, Phone, Mail, Calendar, Star, Navigation
+  Home, Wifi, Car, Dumbbell, Shield, Wind, Tv, Coffee, Check, Phone, Mail, Calendar, Star, Navigation, X, MessageCircle, Eye, EyeOff
 } from "lucide-react"
 import Link from "next/link"
+import VirtualTourSection from "@/components/VirtualTourSection"
+import RequestInfoForm from "@/components/RequestInfoForm"
+import InAppMessaging from "@/components/InAppMessaging"
+import VisitScheduler from "@/components/VisitScheduler"
+import AutomatedFollowUp from "@/components/AutomatedFollowUp"
+import { ProfileGateModal } from "@/components/profile/ProfileGateModal"
+import { ProfileCompletionBanner } from "@/components/profile/ProfileCompletionBanner"
+import { LockedCTAButton } from "@/components/property/LockedCTAButton"
+import { tenantsAPI } from "@/lib/api"
+import { toast } from "sonner"
 
 // Sample property data (in a real app, this would come from an API)
 const propertyData = {
@@ -86,6 +97,19 @@ export default function PropertyDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [showScheduler, setShowScheduler] = useState(false)
+  const [showFollowUp, setShowFollowUp] = useState(false)
+  const [showFullDescription, setShowFullDescription] = useState(false)
+  const [showProfileGate, setShowProfileGate] = useState(false)
+  const [profileCompletion, setProfileCompletion] = useState(0)
+  const [loadingProfile, setLoadingProfile] = useState(false)
+  
+  // Real Supabase Authentication
+  const router = useRouter()
+  const { user, profile, loading } = useAuth()
+  const isAuthenticated = !!user
+  
   const mapRef = useRef<HTMLDivElement>(null)
   const googleMapRef = useRef<google.maps.Map | null>(null)
 
@@ -103,71 +127,151 @@ export default function PropertyDetailPage() {
 
   // Initialize Google Map
   useEffect(() => {
-    if (mapRef.current && typeof window !== 'undefined' && window.google && propertyData.latitude && propertyData.longitude) {
+    if (mapRef.current && typeof window !== 'undefined' && window.google && window.google.maps && propertyData.latitude && propertyData.longitude) {
       if (!googleMapRef.current) {
-        googleMapRef.current = new google.maps.Map(mapRef.current, {
-          center: { lat: propertyData.latitude, lng: propertyData.longitude },
-          zoom: 15,
-          disableDefaultUI: true,
-          zoomControl: true,
-          styles: [
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }]
-            }
-          ]
-        })
+        try {
+          googleMapRef.current = new google.maps.Map(mapRef.current, {
+            center: { lat: propertyData.latitude, lng: propertyData.longitude },
+            zoom: 15,
+            disableDefaultUI: true,
+            zoomControl: true,
+            styles: [
+              {
+                featureType: "poi",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }]
+              }
+            ]
+          })
 
-        // Add marker for property
-        new google.maps.Marker({
-          position: { lat: propertyData.latitude, lng: propertyData.longitude },
-          map: googleMapRef.current,
-          title: propertyData.title,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 12,
-            fillColor: '#f59e0b',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 3,
-          }
-        })
+          // Add marker for property
+          new google.maps.Marker({
+            position: { lat: propertyData.latitude, lng: propertyData.longitude },
+            map: googleMapRef.current,
+            title: propertyData.title,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 12,
+              fillColor: '#f59e0b',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+            }
+          })
+        } catch (error) {
+          console.error('Failed to initialize Google Map:', error)
+        }
       }
     }
   }, [])
 
+  // Fetch profile status when user is authenticated
+  useEffect(() => {
+    const fetchProfileStatus = async () => {
+      if (isAuthenticated && user) {
+        setLoadingProfile(true)
+        try {
+          const status = await tenantsAPI.getProfileStatus()
+          setProfileCompletion(status.profile_completion)
+        } catch (error) {
+          console.error('Error fetching profile status:', error)
+          // Default to 0 if error
+          setProfileCompletion(0)
+        } finally {
+          setLoadingProfile(false)
+        }
+      }
+    }
+
+    fetchProfileStatus()
+  }, [isAuthenticated, user])
+
+  // Handle protected actions - redirect to signin if not authenticated
+  const requireAuth = (action: string) => {
+    if (!isAuthenticated) {
+      // Redirect to signin with callback URL
+      const currentPath = window.location.pathname
+      router.push(`/signin?callbackUrl=${encodeURIComponent(currentPath)}&action=${action}`)
+      return false
+    }
+    return true
+  }
+
+  // Handle apply button click
+  const handleApplyClick = () => {
+    if (!requireAuth("apply")) return
+    
+    // Check if profile is complete
+    if (profileCompletion < 100) {
+      setShowProfileGate(true)
+    } else {
+      router.push(`/properties/${propertyData.id}/apply`)
+    }
+  }
+
+  // Handle complete profile navigation
+  const handleCompleteProfile = () => {
+    setShowProfileGate(false)
+    router.push('/tenant/complete-profile')
+  }
+
+  const handleMessageOwner = () => {
+    if (requireAuth("message")) {
+      // Messaging will open (InAppMessaging component)
+      console.log("Opening messaging...")
+    }
+  }
+
+  const handleScheduleVisit = () => {
+    if (requireAuth("schedule")) {
+      setShowScheduler(true)
+    }
+  }
+
+  const handleViewContact = () => {
+    if (requireAuth("view_contact")) {
+      setShowContactModal(true)
+    }
+  }
+
   const handleGetDirections = () => {
+    if (!requireAuth("directions")) return
+    
     if (propertyData.latitude && propertyData.longitude) {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${propertyData.latitude},${propertyData.longitude}`
       window.open(url, '_blank')
     }
   }
 
+  // Authentication is now handled by Supabase via redirect to /signin
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
-      {/* Sticky Header with Back Button */}
-      <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm">
+    <div className="min-h-screen bg-white">
+      {/* Mobile-Only Sticky Header */}
+      <div className="sticky top-16 z-40 bg-white border-b border-slate-200 lg:hidden">
         <div className="container mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
+            {/* Back Button */}
             <Link href="/properties">
-              <Button variant="ghost" className="text-slate-700 hover:text-amber-600 hover:bg-amber-50 transition-all">
-                <ChevronLeft className="h-5 w-5 mr-1" />
-                Back to Properties
+              <Button variant="ghost" size="sm" className="text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsFavorite(!isFavorite)}
-                className="p-2.5 rounded-full hover:bg-amber-50 transition-all"
+                className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <Heart
-                  className={`h-5 w-5 transition-colors ${
-                    isFavorite ? "fill-amber-500 text-amber-500" : "text-slate-600"
+                  className={`h-5 w-5 transition-all ${
+                    isFavorite ? "fill-red-500 text-red-500" : "text-slate-600"
                   }`}
                 />
               </button>
-              <button className="p-2.5 rounded-full hover:bg-amber-50 transition-all">
+              <button className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
                 <Share2 className="h-5 w-5 text-slate-600" />
               </button>
             </div>
@@ -175,527 +279,318 @@ export default function PropertyDetailPage() {
         </div>
       </div>
 
-      {/* Image Carousel Hero */}
+      {/* Hero Image - Sleek Full Width */}
       <section className="container mx-auto px-4 md:px-6 py-6">
-        <div className="relative h-[400px] md:h-[600px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl group">
-          {/* Main Image */}
+        <div 
+          className="relative h-[450px] md:h-[550px] rounded-xl overflow-hidden cursor-pointer group shadow-lg"
+          onClick={() => setShowImageModal(true)}
+        >
           <img
             src={propertyData.images[currentImageIndex] || "/placeholder.svg"}
-            alt={`${propertyData.title} - Image ${currentImageIndex + 1}`}
-            className="w-full h-full object-cover transition-transform duration-700"
+            alt={`${propertyData.title}`}
+            className="w-full h-full object-cover"
           />
-
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
+          
           {/* Navigation Buttons */}
           <button
-            onClick={prevImage}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              prevImage()
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
           >
-            <ChevronLeft className="h-6 w-6 text-slate-800" />
+            <ChevronLeft className="h-5 w-5 text-slate-900" />
           </button>
           <button
-            onClick={nextImage}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all duration-300 hover:scale-110 opacity-0 group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation()
+              nextImage()
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-all opacity-0 group-hover:opacity-100 shadow-lg"
           >
-            <ChevronRight className="h-6 w-6 text-slate-800" />
+            <ChevronRight className="h-5 w-5 text-slate-900" />
           </button>
 
           {/* Image Counter */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 backdrop-blur-sm rounded-full text-white text-sm font-medium">
+          <div className="absolute bottom-4 right-4 px-3 py-1.5 bg-black/75 backdrop-blur-sm rounded-lg text-white text-sm font-medium">
             {currentImageIndex + 1} / {propertyData.images.length}
           </div>
-
-          {/* Price Tag Overlay */}
-          <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl px-6 py-4 shadow-xl">
-            <p className="text-sm text-slate-600 mb-1">Starting from</p>
-            <p className="text-3xl font-bold text-slate-900">{propertyData.price}</p>
-            <p className="text-sm text-amber-600 font-medium">{propertyData.pricePerMonth}</p>
-          </div>
-
-          {/* Featured Badge */}
-          {propertyData.featured && (
-            <Badge className="absolute top-6 left-6 bg-amber-500 text-white border-0 px-4 py-2 text-sm">
-              Featured Property
-            </Badge>
-          )}
-        </div>
-
-        {/* Thumbnail Gallery */}
-        <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
-          {propertyData.images.map((image, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentImageIndex(index)}
-              className={`flex-shrink-0 w-24 h-20 rounded-xl overflow-hidden transition-all duration-300 ${
-                index === currentImageIndex
-                  ? "ring-4 ring-amber-500 scale-105"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-            >
-              <img
-                src={image || "/placeholder.svg"}
-                alt={`Thumbnail ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Main Content - Clean Rentful Style */}
       <section className="container mx-auto px-4 md:px-6 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Property Details */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Title and Basic Info */}
-            <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 px-4 py-1.5 text-sm font-semibold">
-                        {propertyData.type}
-                      </Badge>
-                      {propertyData.featured && (
-                        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-4 py-1.5 text-sm font-semibold">
-                          ⭐ Featured
-                        </Badge>
-                      )}
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 leading-tight">
-                      {propertyData.title}
-                    </h1>
-                    <p className="flex items-start text-base md:text-lg text-slate-600 mb-4">
-                      <MapPin className="h-5 w-5 mr-2 text-amber-500 mt-1 flex-shrink-0" />
-                      <span>{propertyData.fullAddress}</span>
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-5 w-5 ${
-                              i < Math.floor(propertyData.rating)
-                                ? "fill-amber-500 text-amber-500"
-                                : "text-slate-300"
-                            }`}
-                          />
-                        ))}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Property Title & Basic Info */}
+            <div className="space-y-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+                {propertyData.title}
+              </h1>
+              
+              <div className="flex items-center gap-2 text-slate-600">
+                <MapPin className="h-5 w-5 text-[#FF6600]" />
+                <span className="text-base font-medium">{propertyData.location}, {propertyData.city}</span>
+              </div>
+
+              {/* Key Stats - Clean Horizontal */}
+              <div className="flex flex-wrap items-center gap-8 py-5 border-y border-slate-200">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Monthly Rent</p>
+                  <p className="text-3xl font-bold text-[#FF6600]">${propertyData.price.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Bedrooms</p>
+                  <p className="text-xl font-bold text-slate-900">{propertyData.beds}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Bathrooms</p>
+                  <p className="text-xl font-bold text-slate-900">{propertyData.baths}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Square Feet</p>
+                  <p className="text-xl font-bold text-slate-900">{propertyData.sqft} sq ft</p>
+                </div>
+              </div>
+            </div>
+
+            {/* About Section - Minimal */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-slate-900">About This Property</h2>
+              <div className={`text-slate-700 leading-relaxed text-base ${showFullDescription ? '' : 'line-clamp-4'}`}>
+                {propertyData.description}
+              </div>
+              <button
+                onClick={() => setShowFullDescription(!showFullDescription)}
+                className="text-sm text-[#FF6600] hover:text-orange-700 font-semibold flex items-center gap-1"
+              >
+                {showFullDescription ? 'Show less' : 'Show more'}
+                <ChevronRight className={`h-4 w-4 transition-transform ${showFullDescription ? 'rotate-90' : ''}`} />
+              </button>
+            </div>
+
+            {/* Amenities - Simple List */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-slate-900">Amenities</h2>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                {propertyData.amenities.map((amenity, index) => {
+                  const Icon = amenity.icon
+                  return (
+                    <div key={index} className="flex items-center gap-3 text-base text-slate-700 font-medium">
+                      <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+                        <Icon className="h-5 w-5 text-[#FF6600]" />
                       </div>
-                      <span className="text-sm font-medium text-slate-700">
-                        {propertyData.rating} ({propertyData.reviews} reviews)
-                      </span>
+                      <span>{amenity.label}</span>
                     </div>
-                  </div>
-                </div>
+                  )
+                })}
+              </div>
+            </div>
 
-                {/* Property Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-200">
-                  <div className="flex flex-col items-center p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
-                    <Bed className="h-8 w-8 text-amber-600 mb-2" />
-                    <p className="text-2xl font-bold text-slate-900">{propertyData.beds}</p>
-                    <p className="text-sm text-slate-600">Bedrooms</p>
+            {/* Location - Simple with Link */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-slate-900">Location</h2>
+              <div className="relative h-72 bg-gradient-to-br from-orange-50 to-slate-50 rounded-xl overflow-hidden border-2 border-slate-200 flex items-center justify-center">
+                <div className="text-center px-6">
+                  <div className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="h-8 w-8 text-[#FF6600]" />
                   </div>
-                  <div className="flex flex-col items-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
-                    <Bath className="h-8 w-8 text-blue-600 mb-2" />
-                    <p className="text-2xl font-bold text-slate-900">{propertyData.baths}</p>
-                    <p className="text-sm text-slate-600">Bathrooms</p>
-                  </div>
-                  <div className="flex flex-col items-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-                    <Square className="h-8 w-8 text-green-600 mb-2" />
-                    <p className="text-2xl font-bold text-slate-900">{propertyData.sqft}</p>
-                    <p className="text-sm text-slate-600">Sq Ft</p>
-                  </div>
-                  <div className="flex flex-col items-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
-                    <Home className="h-8 w-8 text-purple-600 mb-2" />
-                    <p className="text-2xl font-bold text-slate-900">{propertyData.yearBuilt}</p>
-                    <p className="text-sm text-slate-600">Year Built</p>
-                  </div>
+                  <p className="text-slate-900 mb-5 text-base font-semibold">{propertyData.fullAddress}</p>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyData.fullAddress)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-[#FF6600] transition-all text-sm font-bold shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    <Navigation className="h-4 w-4" />
+                    Get Directions
+                  </a>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            {/* Description */}
-            <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg">
-                    <Home className="h-6 w-6 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">About This Property</h2>
-                </div>
-                <p className="text-slate-700 leading-relaxed text-base whitespace-pre-line">
-                  {propertyData.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Amenities */}
-            <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
-                    <Wifi className="h-6 w-6 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">Amenities & Features</h2>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {propertyData.amenities.map((amenity, index) => {
-                    const Icon = amenity.icon
-                    return (
-                      <div
-                        key={index}
-                        className="flex flex-col items-center gap-3 p-5 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 hover:from-amber-50 hover:to-orange-50 transition-all duration-300 hover:scale-105 hover:shadow-md"
-                      >
-                        <div className="p-3 bg-white rounded-xl shadow-sm">
-                          <Icon className="h-6 w-6 text-amber-600" />
-                        </div>
-                        <p className="text-sm text-slate-700 text-center font-medium">
-                          {amenity.label}
-                        </p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Features */}
-            <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg">
-                    <Check className="h-6 w-6 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">Key Features</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {propertyData.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-green-50 transition-colors">
-                      <div className="p-1.5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex-shrink-0">
-                        <Check className="h-4 w-4 text-green-600" />
-                      </div>
-                      <p className="text-slate-700 font-medium">{feature}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Location Map */}
-            <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg overflow-hidden">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-                    <MapPin className="h-6 w-6 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-900">Location</h2>
-                </div>
-                
-                {/* Address */}
-                <div className="flex items-start gap-3 mb-6 p-4 bg-amber-50 rounded-xl">
-                  <MapPin className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-slate-900 mb-1">{propertyData.title}</p>
-                    <p className="text-sm text-slate-600">{propertyData.fullAddress}</p>
-                  </div>
-                </div>
-
-                {/* Mini Map */}
-                <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
-                  <div 
-                    ref={mapRef}
-                    className="w-full h-[400px]"
-                  />
-                </div>
-
-                {/* Get Directions Button */}
-                <Button
-                  onClick={handleGetDirections}
-                  className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] shadow-lg text-base"
-                >
-                  <Navigation className="h-5 w-5 mr-2" />
-                  Get Directions
-                </Button>
-
-                {/* Nearby Info */}
-                <div className="mt-6 pt-6 border-t border-stone-200">
-                  <p className="text-sm text-slate-600 mb-3 font-medium">Nearby</p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span>Schools: 2 km</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span>Shopping: 1.5 km</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span>Hospital: 3 km</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span>Airport: 15 km</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="lg:sticky lg:top-24 space-y-6 h-fit">
-            {/* Contact Card */}
-            <Card className="bg-gradient-to-br from-white via-white to-amber-50/40 backdrop-blur-sm border-0 rounded-2xl shadow-xl overflow-hidden">
-              <CardContent className="p-0">
-                {/* Header with gradient background */}
-                <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 pb-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-                      <Phone className="h-5 w-5 text-white" />
+          {/* Right Column - Contact Card (Sleek) */}
+          <div className="lg:sticky lg:top-24 h-fit">
+            {/* Owner Info Card */}
+            <Card className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                {isAuthenticated ? (
+                  <>
+                    {/* Authenticated: Show Full Owner Info */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <Avatar className="h-14 w-14 border-2 border-slate-100">
+                        <AvatarImage src={propertyData.owner.avatar} />
+                        <AvatarFallback className="bg-slate-900 text-white font-semibold text-lg">
+                          {propertyData.owner.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-900 text-lg">{propertyData.owner.name}</h4>
+                          {propertyData.owner.verified && (
+                            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                              <Check className="h-3 w-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600 font-medium">Verified Owner</p>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-white">Contact Owner</h3>
-                  </div>
-                </div>
-                
-                {/* Owner Info - Overlapping card */}
-                <div className="px-6 -mt-6 mb-6">
-                  <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
-                          <AvatarImage src={propertyData.owner.avatar} />
-                          <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-500 text-white text-xl font-bold">
-                            {propertyData.owner.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        {propertyData.owner.verified && (
-                          <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1 border-2 border-white shadow-md">
-                            <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
+
+                    {/* Language & Availability */}
+                    <div className="space-y-2.5 text-sm text-slate-700 mb-6 pb-6 border-b border-slate-100">
+                      <p className="font-medium"><span className="text-slate-500">Language:</span> English, Bahasa</p>
+                      <p className="font-medium"><span className="text-slate-500">Available:</span> Monday - Sunday</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Not Authenticated: Modern Blurred/Hidden Info */}
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                      <div className="relative h-14 w-14 group">
+                        {/* Blurred Avatar Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full" />
+                        
+                        {/* Modern Lock Overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="relative">
+                            {/* Animated Ring */}
+                            <div className="absolute inset-0 w-8 h-8 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+                              <div className="w-full h-full rounded-full border-2 border-slate-400/30 animate-ping" />
+                            </div>
+                            {/* Lock Icon Container */}
+                            <div className="relative w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+                              <svg 
+                                className="w-4 h-4 text-slate-700" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  strokeWidth={2} 
+                                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                                />
+                              </svg>
+                            </div>
                           </div>
-                        )}
+                        </div>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-bold text-lg text-slate-900">{propertyData.owner.name}</h4>
+                          <div className="h-5 w-32 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 rounded animate-pulse" />
+                          <Check className="h-4 w-4 text-green-600" />
                         </div>
-                        {propertyData.owner.verified && (
-                          <Badge className="bg-green-100 text-green-700 border-0 text-xs mb-2">
-                            ✓ Verified Owner
-                          </Badge>
-                        )}
-                        <div className="flex items-center gap-4 text-sm text-slate-600">
-                          <div className="flex items-center gap-1">
-                            <Home className="h-4 w-4 text-amber-600" />
-                            <span className="font-semibold">{propertyData.owner.properties}</span>
-                            <span>properties</span>
-                          </div>
-                        </div>
+                        <p className="text-xs text-slate-500">Verified Owner</p>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
 
-                <div className="px-6 pb-6">
-                {/* Contact Buttons */}
-                <div className="space-y-3">
-                  <Button className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] shadow-lg text-base">
-                    <Phone className="h-5 w-5 mr-2" />
-                    Call Owner
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full h-14 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-800 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] text-base"
-                  >
-                    <Mail className="h-5 w-5 mr-2" />
-                    Send Message
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full h-14 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-800 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] text-base"
-                  >
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Schedule Visit
-                  </Button>
-                </div>
+                {/* Contact Actions */}
+                {isAuthenticated ? (
+                  <>
+                    {/* Profile Completion Warning */}
+                    {profileCompletion < 100 && (
+                      <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
+                        <p className="text-sm font-bold text-slate-900 mb-1.5">
+                          ⚠️ Complete your profile to apply
+                        </p>
+                        <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                          {profileCompletion}% complete • Takes only 2 minutes
+                        </p>
+                      </div>
+                    )}
+                    
+                    {profileCompletion < 100 ? (
+                      <LockedCTAButton
+                        label="Submit Application"
+                        reason="Complete your profile to apply to properties"
+                        onClick={handleApplyClick}
+                        className="w-full h-12 bg-[#FF6600] hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                      />
+                    ) : (
+                      <Button 
+                        onClick={handleApplyClick}
+                        className="w-full h-12 bg-[#FF6600] hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                      >
+                        Submit Application
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Single Clean Warning */}
+                    <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200">
+                      <p className="text-sm font-bold text-slate-900 mb-1.5">
+                        🔐 Sign in to contact owner
+                      </p>
+                      <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                        Create a free account to view owner details and submit your application
+                      </p>
+                    </div>
+                    
+                    <Button 
+                      onClick={() => requireAuth("message")}
+                      className="w-full h-12 bg-[#FF6600] hover:bg-orange-700 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                    >
+                      Sign in to Apply
+                    </Button>
+                  </>
+                )}
 
-                {/* Divider */}
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent my-6" />
-
-                {/* Add to Favorites */}
-                <Button
-                  variant="outline"
-                  onClick={() => setIsFavorite(!isFavorite)}
-                  className={`w-full h-14 border-2 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] text-base ${
-                    isFavorite
-                      ? "border-amber-500 bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700"
-                      : "border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-800"
-                  }`}
-                >
-                  <Heart
-                    className={`h-5 w-5 mr-2 ${
-                      isFavorite ? "fill-amber-500" : ""
-                    }`}
-                  />
-                  {isFavorite ? "Saved to Favorites" : "Add to Favorites"}
-                </Button>
-
-                {/* Contact Info */}
-                <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
-                  <p className="text-sm text-slate-600 flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-amber-500" />
-                    {propertyData.owner.phone}
-                  </p>
-                  <p className="text-sm text-slate-600 flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-amber-500" />
-                    {propertyData.owner.email}
-                  </p>
-                </div>
-                </div>
+                {/* Security Notice - Simple Text Only */}
+                <p className="mt-4 text-xs text-center text-slate-600 font-medium">
+                  🔒 All communication happens securely within the platform
+                </p>
               </CardContent>
             </Card>
 
-            {/* Safety Notice */}
-            <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200/50 rounded-2xl shadow-lg">
-              <CardContent className="p-6">
-                <div className="flex gap-4">
-                  <div className="p-3 bg-white rounded-xl shadow-sm flex-shrink-0 w-fit h-fit">
-                    <Shield className="h-6 w-6 text-amber-600 flex-shrink-0" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-slate-900 mb-2 text-lg">Safety Tips</h4>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      Always verify property details and meet in person before making any payments. Never send money without viewing the property.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>
 
-      {/* Mobile Floating Contact Button */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent z-50">
-        <Button
-          onClick={() => setShowContactModal(true)}
-          className="w-full h-16 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-2xl font-bold text-lg shadow-2xl"
-        >
-          <Phone className="h-6 w-6 mr-2" />
-          Contact Owner
-        </Button>
-      </div>
-
-      {/* Mobile Contact Modal */}
-      {showContactModal && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={() => setShowContactModal(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            {/* Header */}
-            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 pb-8 sticky top-0 z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
-                    <Phone className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white">Contact Owner</h3>
-                </div>
-                <button
-                  onClick={() => setShowContactModal(false)}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
-                >
-                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Owner Info Card */}
-            <div className="px-6 -mt-6 mb-6">
-              <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Avatar className="h-20 w-20 border-4 border-white shadow-lg">
-                      <AvatarImage src={propertyData.owner.avatar} />
-                      <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-500 text-white text-xl font-bold">
-                        {propertyData.owner.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    {propertyData.owner.verified && (
-                      <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1 border-2 border-white shadow-md">
-                        <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-slate-900 mb-1">{propertyData.owner.name}</h4>
-                    {propertyData.owner.verified && (
-                      <Badge className="bg-green-100 text-green-700 border-0 text-xs mb-2">
-                        ✓ Verified Owner
-                      </Badge>
-                    )}
-                    <div className="flex items-center gap-1 text-sm text-slate-600">
-                      <Home className="h-4 w-4 text-amber-600" />
-                      <span className="font-semibold">{propertyData.owner.properties}</span>
-                      <span>properties</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Buttons */}
-            <div className="px-6 pb-6 space-y-3">
-              <Button className="w-full h-16 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-semibold text-base shadow-lg">
-                <Phone className="h-5 w-5 mr-2" />
-                Call {propertyData.owner.phone}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-16 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-800 rounded-xl font-semibold text-base"
-              >
-                <Mail className="h-5 w-5 mr-2" />
-                Send Message
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full h-16 border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50 text-slate-800 rounded-xl font-semibold text-base"
-              >
-                <Calendar className="h-5 w-5 mr-2" />
-                Schedule Visit
-              </Button>
-
-              {/* Contact Info */}
-              <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
-                <p className="text-sm text-slate-600 flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-amber-500" />
-                  {propertyData.owner.phone}
-                </p>
-                <p className="text-sm text-slate-600 flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-amber-500" />
-                  {propertyData.owner.email}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modals */}
+      {showScheduler && (
+        <VisitScheduler
+          propertyTitle={propertyData.title}
+          onClose={() => setShowScheduler(false)}
+        />
       )}
 
-      {/* Footer */}
-      <footer className="bg-white/80 backdrop-blur-xl border-t border-stone-200/50 py-8 pb-24 lg:pb-8">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-slate-600">
-            © 2025 <span className="font-semibold text-slate-900">NuloAfrica</span>. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      {showFollowUp && (
+        <AutomatedFollowUp
+          propertyTitle={propertyData.title}
+          onClose={() => setShowFollowUp(false)}
+        />
+      )}
+
+      {isAuthenticated && (
+        <InAppMessaging
+          propertyTitle={propertyData.title}
+          landlordName={propertyData.owner.name}
+          landlordAvatar={propertyData.owner.avatar}
+          landlordVerified={propertyData.owner.verified}
+          onScheduleVisit={handleScheduleVisit}
+          onRequestCall={() => {
+            window.location.href = `tel:${propertyData.owner.phone}`
+          }}
+        />
+      )}
+
+      {/* Profile Gate Modal */}
+      <ProfileGateModal
+        isOpen={showProfileGate}
+        onClose={() => setShowProfileGate(false)}
+        profileCompletion={profileCompletion}
+        onCompleteNow={handleCompleteProfile}
+      />
+
     </div>
   )
 }

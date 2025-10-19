@@ -46,8 +46,8 @@ const createCustomIcon = (isSelected: boolean) => {
     className: 'custom-marker',
     html: `
       <div class="relative">
-        <div class="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center shadow-lg hover:bg-amber-600 transition-all hover:scale-110 ${
-          isSelected ? 'ring-4 ring-amber-300 scale-125' : ''
+        <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-all hover:scale-110 ${
+          isSelected ? 'ring-4 ring-orange-300 scale-125' : ''
         }">
           <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -68,7 +68,7 @@ const isValidCoordinate = (lat: number, lng: number): boolean => {
          lng >= -180 && lng <= 180
 }
 
-// Component to fit map bounds
+// Component to fit map bounds and handle resize
 function FitBounds({ properties }: { properties: Property[] }) {
   const map = useMap()
 
@@ -87,6 +87,22 @@ function FitBounds({ properties }: { properties: Property[] }) {
       }
     }
   }, [properties, map])
+
+  // Handle map resize when container changes
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize()
+    })
+
+    const container = map.getContainer()
+    if (container) {
+      resizeObserver.observe(container)
+    }
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [map])
 
   return null
 }
@@ -213,7 +229,7 @@ export default function PropertyMapLeaflet({ properties, selectedProperty, onPro
                 <div className="p-2 min-w-[200px]">
                   <h3 className="font-bold text-sm mb-1">{property.title}</h3>
                   <p className="text-xs text-slate-600 mb-2">{property.location}</p>
-                  <p className="text-lg font-bold text-amber-600">
+                  <p className="text-lg font-bold text-orange-600">
                     ${(property.price / 1000).toFixed(0)}k
                   </p>
                   <div className="flex gap-2 text-xs text-slate-600 mt-2">
@@ -231,7 +247,7 @@ export default function PropertyMapLeaflet({ properties, selectedProperty, onPro
       {!mapReady && (
         <div className="absolute inset-0 bg-slate-100 flex items-center justify-center z-10">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-slate-600">Loading map...</p>
           </div>
         </div>
@@ -262,12 +278,12 @@ export default function PropertyMapLeaflet({ properties, selectedProperty, onPro
                 {selectedProperty.title}
               </h3>
               <p className="text-sm text-slate-600 mb-3 flex items-center gap-1">
-                <MapPin className="h-4 w-4 text-amber-600" />
+                <MapPin className="h-4 w-4 text-orange-600" />
                 {selectedProperty.location}
               </p>
 
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-2xl font-bold text-amber-600">
+                <span className="text-2xl font-bold text-orange-600">
                   ${(selectedProperty.price / 1000).toFixed(0)}k
                 </span>
                 <span className="text-sm text-slate-500">
@@ -277,19 +293,19 @@ export default function PropertyMapLeaflet({ properties, selectedProperty, onPro
 
               <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
                 <div className="flex items-center gap-1">
-                  <svg className="h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                   <span>{selectedProperty.beds} beds</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <svg className="h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <span>{selectedProperty.baths} baths</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <svg className="h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>
                   <span>{selectedProperty.sqft.toLocaleString()} sqft</span>
@@ -306,15 +322,16 @@ export default function PropertyMapLeaflet({ properties, selectedProperty, onPro
         </div>
       )}
 
-      {/* Map Legend */}
-      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 luxury-shadow-md z-[1000]">
-        <div className="flex items-center gap-2 text-sm">
-          <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
-            <MapPin className="h-4 w-4 text-white" />
+      {/* Compact Map Legend - Strategic Position */}
+      <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-md rounded-lg px-3 py-2 shadow-lg border border-slate-200 z-[1000]">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+            <MapPin className="h-3.5 w-3.5 text-white" />
           </div>
-          <span className="font-medium text-slate-700">
-            {properties.length} Properties
-          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-bold text-orange-600">{properties.length}</span>
+            <span className="text-xs text-slate-600 font-medium">properties</span>
+          </div>
         </div>
       </div>
     </div>
