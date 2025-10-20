@@ -224,9 +224,14 @@ export default function PropertyDetailPage() {
                     <h1 className="text-3xl font-bold text-slate-900 mb-2">
                       {propertyData.title}
                     </h1>
-                    <div className="flex items-center gap-2 text-slate-600">
+                    <div className="flex items-center gap-3 text-slate-600 mb-2">
                       <MapPin className="h-4 w-4" />
                       <span>{propertyData.location}</span>
+                    </div>
+                    {/* Social Proof Badge */}
+                    <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-700 px-3 py-1.5 rounded-full text-sm font-semibold">
+                      <Eye className="h-4 w-4" />
+                      <span>12 people viewing now</span>
                     </div>
                   </div>
                   <div className="text-right">
