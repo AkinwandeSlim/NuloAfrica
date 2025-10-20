@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Menu, X, Home, Building2, LayoutGrid, User, LogOut, Search, ChevronDown } from "lucide-react"
 import { Logo } from "@/components/logo"
@@ -29,6 +29,7 @@ export default function PublicLayout({
   const [searchQuery, setSearchQuery] = useState("")
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   
   // Determine if we should show search bar (properties or dashboard pages)
   const showSearchBar = pathname?.startsWith('/properties') || pathname?.startsWith('/dashboard')
@@ -42,6 +43,14 @@ export default function PublicLayout({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Read search query from URL params and update input
+  useEffect(() => {
+    const locationParam = searchParams.get('location')
+    if (locationParam) {
+      setSearchQuery(locationParam)
+    }
+  }, [searchParams])
 
   // Handle scroll effect
   useEffect(() => {

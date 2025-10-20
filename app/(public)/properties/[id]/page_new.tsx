@@ -10,8 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
   MapPin, Bed, Bath, Square, Heart, Share2, ChevronRight, X,
   Home, Wifi, Car, Dumbbell, Shield, Wind, Tv, Coffee, Check, 
-  Phone, Mail, Calendar, Star, MessageCircle, Eye, Grid, Maximize2,
-  CheckCircle2, TrendingDown
+  Phone, Mail, Calendar, Star, MessageCircle, Eye, Grid, Maximize2
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -112,8 +111,8 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Breadcrumb Navigation */}
-      <div className="bg-white border-b border-slate-200 sticky top-16 z-40">
+      {/* Breadcrumb Navigation - Fixed with Navbar */}
+      <div className="bg-white border-b border-slate-200 fixed top-16 left-0 right-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <nav className="flex items-center gap-2 text-sm">
             <Link href="/" className="text-slate-600 hover:text-orange-600 transition-colors font-medium">
@@ -131,8 +130,10 @@ export default function PropertyDetailPage() {
         </div>
       </div>
 
-      {/* Modern Image Gallery */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Content - Starts below fixed breadcrumb (navbar 64px + breadcrumb 52px = 116px) */}
+      <div className="pt-[116px]">
+        {/* Modern Image Gallery */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-4 gap-2 h-[500px] rounded-2xl overflow-hidden">
           {/* Main Large Image */}
           <div 
@@ -313,7 +314,7 @@ export default function PropertyDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Owner */}
-            <Card className="sticky top-32">
+            <Card className="sticky top-[120px]">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4 mb-6">
                   <Avatar className="h-16 w-16">
@@ -332,55 +333,18 @@ export default function PropertyDetailPage() {
                   </div>
                 </div>
 
-                {/* Nulo Savings Badge */}
-                <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 border border-green-200/80 rounded-xl px-4 py-3 mb-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <TrendingDown className="h-5 w-5 text-green-600" />
-                    <p className="text-sm font-bold text-green-700">
-                      Pay ₦2,660,000/mo with Nulo
-                    </p>
-                  </div>
-                  <p className="text-sm text-green-600 font-semibold">
-                    💰 Save ₦1,680,000/year
-                  </p>
-                </div>
-
-                {/* Primary CTAs */}
                 <div className="space-y-3">
-                  <Button 
-                    className="w-full h-12 text-sm font-bold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-                    onClick={() => toast.success('Opening tour booking...')}
-                  >
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Book Tour
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-12 text-sm font-bold border-2 border-slate-200 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
-                    onClick={() => toast.info('Checking availability...')}
-                  >
-                    <CheckCircle2 className="h-5 w-5 mr-2" />
-                    Check Availability
-                  </Button>
-                </div>
-
-                {/* Secondary Actions */}
-                <div className="pt-4 mt-4 border-t border-slate-100 space-y-2">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                    onClick={() => toast.info('Opening chat...')}
-                  >
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Send Message
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                    onClick={() => toast.info('Calling owner...')}
-                  >
+                  <Button variant="outline" className="w-full">
                     <Phone className="h-4 w-4 mr-2" />
                     Call Owner
+                  </Button>
+                  <Button variant="outline" className="w-full">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Schedule Visit
                   </Button>
                 </div>
               </CardContent>
@@ -425,6 +389,7 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
