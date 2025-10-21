@@ -166,7 +166,7 @@ export function HeroSection({
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="max-w-6xl mx-auto">
             
-            {/* Sleek Badge with Glow Animation */}
+            {/* Premium Badge */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -181,7 +181,7 @@ export function HeroSection({
               </div>
             </motion.div>
 
-            {/* Ultra-Modern Headline with Enhanced Effects */}
+            {/* Premium Headline */}
             <motion.div 
               className="text-center mb-8 md:mb-10"
               initial={{ opacity: 0, y: 30 }}
@@ -198,7 +198,7 @@ export function HeroSection({
               </h1>
 
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-700 font-semibold max-w-3xl mx-auto leading-relaxed px-4">
-                Premium properties across <span className="text-orange-600 font-bold">Nigeria</span> — 
+                Premium properties across <span className="text-orange-600 font-bold">Africa</span> — 
                 Find, rent, or list with confidence
               </p>
             </motion.div>
@@ -213,7 +213,7 @@ export function HeroSection({
               <div className="relative group">
                 <button
                   onClick={() => handleUserTypeClick('tenant')}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:scale-105"
+                  className="w-full sm:w-auto px-9 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-600/40 hover:scale-105"
                   aria-label="I'm a Tenant - Find verified homes and apartments"
                 >
                   <Home className="inline-block h-4 w-4 mr-2" />
@@ -231,7 +231,7 @@ export function HeroSection({
               <div className="relative group">
                 <button
                   onClick={() => handleUserTypeClick('landlord')}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 bg-white/60 backdrop-blur-sm text-slate-700 border border-orange-200/50 hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:scale-105"
+                  className="w-full sm:w-auto px-9 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 bg-white/70 backdrop-blur-md text-slate-700 border border-orange-200/50 hover:bg-orange-500 hover:text-white hover:border-orange-500 shadow-lg hover:shadow-xl hover:scale-105"
                   aria-label="I'm a Property Manager - List and manage rental properties"
                 >
                   <Building2 className="inline-block h-4 w-4 mr-2" />

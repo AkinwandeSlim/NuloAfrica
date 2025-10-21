@@ -61,15 +61,57 @@ export const authAPI = {
    * Register a new user
    */
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/api/v1/auth/register', data);
+    console.log('🔐 [AUTH API] Attempting registration...');
+    console.log('📧 [AUTH API] Email:', data.email);
+    console.log('👤 [AUTH API] Full Name:', data.full_name);
+    console.log('📱 [AUTH API] Phone:', data.phone_number);
+    console.log('👥 [AUTH API] User Type:', data.user_type);
+    console.log('🌐 [AUTH API] API Base URL:', apiClient.defaults.baseURL);
+    console.log('🎯 [AUTH API] Full URL:', `${apiClient.defaults.baseURL}/api/v1/auth/register`);
+    console.log('📦 [AUTH API] Full payload:', JSON.stringify(data, null, 2));
     
-    // Store token and user
-    if (response.data.success) {
-      storage.setToken(response.data.access_token);
-      storage.setUser(response.data.user);
+    try {
+      const response = await apiClient.post<AuthResponse>('/api/v1/auth/register', data);
+      
+      console.log('✅ [AUTH API] Registration response:', response.data);
+      
+      // Store token and user
+      if (response.data.success) {
+        storage.setToken(response.data.access_token);
+        storage.setUser(response.data.user);
+        console.log('💾 [AUTH API] Token and user stored');
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [AUTH API] Registration failed');
+      console.error('❌ [AUTH API] Full error object:', error);
+      console.error('❌ [AUTH API] Error.response:', error.response);
+      console.error('❌ [AUTH API] Error.request:', error.request);
+      console.error('❌ [AUTH API] Error.message:', error.message);
+      console.error('❌ [AUTH API] Error.config:', error.config);
+      
+      if (error.response) {
+        // Server responded with error
+        console.error('❌ [AUTH API] Response status:', error.response.status);
+        console.error('❌ [AUTH API] Response data:', error.response.data);
+        console.error('❌ [AUTH API] Response headers:', error.response.headers);
+        
+        // Log detailed validation errors if available
+        if (error.response.data?.detail) {
+          console.error('❌ [AUTH API] Validation errors:', JSON.stringify(error.response.data.detail, null, 2));
+        }
+      } else if (error.request) {
+        // Request made but no response
+        console.error('❌ [AUTH API] No response received');
+        console.error('❌ [AUTH API] Request:', error.request);
+      } else {
+        // Error setting up request
+        console.error('❌ [AUTH API] Request setup error:', error.message);
+      }
+      
+      throw error;
     }
-    
-    return response.data;
   },
 
   /**
